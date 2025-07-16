@@ -709,20 +709,15 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             }
 
             if (event.showToggle) {
-                val paymentMethodViewed =
-                    requireContext().settingsRepository?.paymentMethodViewed ?: false
-                reviewRecipientFeeView.subtitle = getString(Localization.change_fee_method)
+                reviewRecipientFeeView.subtitle = getString(Localization.edit_full)
                 reviewRecipientFeeView.setOnClickListener {
                     showFeeMethods(event.fee, reviewRecipientFeeView)
                 }
                 reviewRecipientFeeView.subtitleView.expandTouchArea(8.dp)
                 reviewRecipientFeeView.subtitleView.isEnabled = true
-                reviewRecipientFeeView.subtitleView.setTextColor(if (paymentMethodViewed) requireContext().textSecondaryColor else requireContext().textAccentColor)
+                reviewRecipientFeeView.subtitleView.setTextColor(requireContext().textAccentColor)
                 reviewRecipientFeeView.subtitleView.setEndDrawable(
-                    getDrawable(
-                        UIKitIcon.ic_chevron_right_12,
-                        if (paymentMethodViewed) requireContext().textSecondaryColor else requireContext().textAccentColor
-                    )
+                    getDrawable(UIKitIcon.ic_chevron_right_12, requireContext().textAccentColor)
                 )
 
             } else {

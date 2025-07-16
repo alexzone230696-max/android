@@ -429,7 +429,6 @@
         <item quantity="one">≈ %1$s carga por %2$s</item>
         <item quantity="other">≈ %1$s cargas por %2$s</item>
     </plurals>
-    <string name="will_be_paid_with_battery">Se pagará con la batería</string>
     <string name="battery_settings_title">Configuración de la batería</string>
     <string name="battery_settings_subtitle">Las transacciones seleccionadas serán pagadas por la batería de Tonkeeper.</string>
     <string name="battery_recharge_title">Recargar</string>
@@ -443,7 +442,6 @@
     <string name="promocode_hint">Código promocional</string>
     <string name="refund">Reembolso</string>
     <string name="gasless_switch_label">Toque para pagar en %1$s</string>
-    <string name="change_fee_method">Cambiar método de pago</string>
     <string name="battery_large_pack">Grande</string>
     <string name="battery_medium_pack">Medio</string>
     <string name="battery_small_pack">Pequeño</string>

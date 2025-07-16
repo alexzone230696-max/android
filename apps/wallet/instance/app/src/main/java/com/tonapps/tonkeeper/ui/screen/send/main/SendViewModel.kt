@@ -1005,7 +1005,7 @@ class SendViewModel(
         transfer: TransferEntity,
     ): SendFee.Ton {
         val message = transfer.signForEstimation(
-            internalMessage = false, jettonTransferAmount = TransferEntity.BASE_FORWARD_AMOUNT
+            internalMessage = false, jettonTransferAmount = TransferEntity.ONE_TON
         )
         // Emulate with higher balance to calculate fair amount to send
         val emulated = api.emulate(
@@ -1163,7 +1163,6 @@ class SendViewModel(
             is SendFee.Gasless -> PreferredFeeMethod.GASLESS
         }
         settingsRepository.setPreferredFeeMethod(wallet.id, preferredMethod)
-        settingsRepository.paymentMethodViewed = true
         viewModelScope.launch(Dispatchers.IO) {
             transferFlow.firstOrNull()?.let { transfer ->
                 _feeFlow.tryEmit(fee)

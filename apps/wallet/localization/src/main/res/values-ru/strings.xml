@@ -543,7 +543,6 @@
         <item quantity="many">≈ %1$s отправок токенов</item>
         <item quantity="other">≈ %1$s отправок токенов</item>
     </plurals>
-    <string name="will_be_paid_with_battery">Будет оплачена батарейкой</string>
     <string name="battery_settings_title">Настройки батарейки</string>
     <string name="battery_settings_subtitle">Выбранные транзакции будут оплачены батарейкой Tonkeeper.</string>
     <string name="battery_recharge_title">Зарядка</string>
@@ -557,7 +556,6 @@
     <string name="promocode_hint">Промокод</string>
     <string name="refund">Возврат</string>
     <string name="gasless_switch_label">Оплатить в %1$s</string>
-    <string name="change_fee_method">Изменить способ оплаты</string>
     <string name="or">или</string>
     <string name="battery_large_pack">Большой</string>
     <string name="battery_medium_pack">Средний</string>

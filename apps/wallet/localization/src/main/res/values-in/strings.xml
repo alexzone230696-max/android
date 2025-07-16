@@ -427,7 +427,6 @@
     <plurals name="battery_charges_per_action">
         <item quantity="other">≈ %1$s pengisian per %2$s</item>
     </plurals>
-    <string name="will_be_paid_with_battery">Akan dibayar dengan Baterai</string>
     <string name="battery_settings_title">Pengaturan Baterai</string>
     <string name="battery_settings_subtitle">Transaksi yang dipilih akan dibayar oleh Baterai Tonkeeper.</string>
     <string name="battery_recharge_title">Isi ulang</string>
@@ -441,7 +440,6 @@
     <string name="promocode_hint">Kode Promo</string>
     <string name="refund">Pengembalian</string>
     <string name="gasless_switch_label">Ketuk untuk membayar dalam %1$s</string>
-    <string name="change_fee_method">Ubah metode pembayaran</string>
     <string name="battery_large_pack">Besar</string>
     <string name="battery_medium_pack">Sedang</string>
     <string name="battery_small_pack">Kecil</string>

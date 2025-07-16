@@ -624,7 +624,6 @@
         <item quantity="many">≈ %1$s token transfers</item>
         <item quantity="other">≈ %1$s token transfers</item>
     </plurals>
-    <string name="will_be_paid_with_battery">Will be paid with Battery</string>
     <string name="battery_settings_title">Battery Settings</string>
     <string name="battery_settings_subtitle">Selected transactions will be paid by Tonkeeper Battery.</string>
     <string name="battery_recharge_title">Recharge</string>
@@ -638,7 +637,6 @@
     <string name="promocode_hint">Promo Code</string>
     <string name="refund">Refund</string>
     <string name="gasless_switch_label">Tap to pay in %1$s</string>
-    <string name="change_fee_method">Change Payment Method</string>
     <string name="recharge_battery">Recharge Battery</string>
     <string name="or">or</string>
     <string name="battery_large_pack">Large</string>
