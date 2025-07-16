@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.tonapps.icu.Coins
 import com.tonapps.network.NetworkMonitor
+import com.tonapps.tonkeeper.Environment
 import com.tonapps.tonkeeper.RemoteConfig
 import com.tonapps.tonkeeper.core.entities.AssetsEntity.Companion.sort
 import com.tonapps.tonkeeper.extensions.hasPushPermission
@@ -56,6 +57,7 @@ class WalletViewModel(
     private val assetsManager: AssetsManager,
     private val apkManager: APKManager,
     private val remoteConfig: RemoteConfig,
+    private val environment: Environment,
 ) : BaseWalletVM(app) {
 
     val installId: String
@@ -235,7 +237,7 @@ class WalletViewModel(
                 val walletPushEnabled = settingsRepository.getPushWallet(state.wallet.id)
                 val hasInitializedWallet = accountRepository.getInitializedWallets().isNotEmpty()
                 State.Setup(
-                    pushEnabled = context.hasPushPermission() && walletPushEnabled,
+                    pushEnabled = !environment.isGooglePlayServicesAvailable || (context.hasPushPermission() && walletPushEnabled),
                     biometryEnabled = if (wallet.hasPrivateKey) settingsRepository.biometric else true,
                     hasBackup = if (wallet.hasPrivateKey) state.hasBackup else true,
                     showTelegramChannel = false,
