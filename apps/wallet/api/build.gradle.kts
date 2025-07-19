@@ -33,6 +33,4 @@ dependencies {
     implementation(Dependence.GooglePlay.cronet)
     implementation(Dependence.Squareup.okhttp)
     implementation(Dependence.Squareup.sse)
-    implementation(Dependence.Squareup.moshi)
-    implementation(Dependence.Squareup.moshiAdapters)
 }

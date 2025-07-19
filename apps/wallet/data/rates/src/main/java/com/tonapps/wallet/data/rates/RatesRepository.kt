@@ -51,7 +51,8 @@ class RatesRepository(
         val entities = mutableListOf<RateEntity>()
         for (rate in rates) {
             val value = rate.value
-            val bigDecimal = value.prices?.get(currency.code) ?: BigDecimal.ZERO
+            val prices = value.prices?.get(currency.code)?.let(::BigDecimal)
+            val bigDecimal = prices ?: BigDecimal.ZERO
 
             entities.add(RateEntity(
                 tokenCode = rate.key,

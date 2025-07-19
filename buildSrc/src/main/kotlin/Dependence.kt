@@ -107,8 +107,6 @@ object Dependence {
     object Squareup {
         const val okhttp = "com.squareup.okhttp3:okhttp:4.12.0"
         const val sse = "com.squareup.okhttp3:okhttp-sse:4.12.0"
-        const val moshi = "com.squareup.moshi:moshi-kotlin:1.15.0"
-        const val moshiAdapters = "com.squareup.moshi:moshi-adapters:1.15.0"
         const val okio = "com.squareup.okio:okio:3.9.0"
     }
 

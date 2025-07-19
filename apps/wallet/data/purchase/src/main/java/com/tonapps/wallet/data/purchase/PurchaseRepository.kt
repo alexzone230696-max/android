@@ -1,13 +1,9 @@
 package com.tonapps.wallet.data.purchase
 
 import android.content.Context
-import android.util.Log
-import com.tonapps.extensions.JSON
 import com.tonapps.extensions.getParcelable
 import com.tonapps.extensions.prefs
 import com.tonapps.extensions.putParcelable
-import com.tonapps.extensions.putString
-import com.tonapps.extensions.state
 import com.tonapps.extensions.toByteArray
 import com.tonapps.extensions.toParcel
 import com.tonapps.wallet.api.API
@@ -17,17 +13,11 @@ import com.tonapps.wallet.data.purchase.entity.OnRamp
 import com.tonapps.wallet.data.purchase.entity.PurchaseCategoryEntity
 import com.tonapps.wallet.data.purchase.entity.PurchaseDataEntity
 import com.tonapps.wallet.data.purchase.entity.PurchaseMethodEntity
+import io.Serializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.ton.crypto.digest.sha512
 import org.ton.crypto.hex
@@ -85,7 +75,7 @@ class PurchaseRepository(
     private suspend fun loadOnRampData(country: String): OnRamp.Data? = withContext(Dispatchers.IO) {
         val data = api.getOnRampData(country) ?: return@withContext null
         try {
-            JSON.decodeFromString<OnRamp.Data>(data)
+            Serializer.fromJSON<OnRamp.Data>(data)
         } catch (e: Throwable) {
             null
         }

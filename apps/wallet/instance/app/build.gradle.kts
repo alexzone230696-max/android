@@ -91,9 +91,6 @@ dependencies {
     implementation(Dependence.UI.material)
     implementation(Dependence.UI.flexbox)
 
-    implementation(Dependence.Squareup.moshi)
-    implementation(Dependence.Squareup.moshiAdapters)
-
     implementation(platform(Dependence.Firebase.bom))
     implementation(Dependence.Firebase.analytics)
     implementation(Dependence.Firebase.config)

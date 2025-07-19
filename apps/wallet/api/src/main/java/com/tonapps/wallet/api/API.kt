@@ -3,7 +3,6 @@ package com.tonapps.wallet.api
 import android.content.Context
 import android.net.Uri
 import android.util.ArrayMap
-import com.squareup.moshi.JsonAdapter
 import com.tonapps.blockchain.ton.contract.BaseWalletContract
 import com.tonapps.blockchain.ton.contract.WalletVersion
 import com.tonapps.blockchain.ton.extensions.EmptyPrivateKeyEd25519
@@ -33,13 +32,13 @@ import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.api.internal.ConfigRepository
 import com.tonapps.wallet.api.internal.InternalApi
 import com.tonapps.wallet.api.tron.TronApi
-import io.batteryapi.apis.BatteryApi
-import io.batteryapi.apis.BatteryApi.UnitsGetBalance
+import io.Serializer
+import io.batteryapi.apis.DefaultApi
 import io.batteryapi.models.Balance
 import io.batteryapi.models.Config
+import io.batteryapi.models.EstimateGaslessCostRequest
 import io.batteryapi.models.RechargeMethods
-import io.tonapi.infrastructure.ClientException
-import io.tonapi.infrastructure.Serializer
+import io.infrastructure.ClientException
 import io.tonapi.models.Account
 import io.tonapi.models.AccountAddress
 import io.tonapi.models.AccountEvent
@@ -142,13 +141,9 @@ class API(
 
     private val batteryApi by lazy {
         SourceAPI(
-            BatteryApi(config.batteryHost, tonAPIHttpClient),
-            BatteryApi(config.batteryTestnetHost, tonAPIHttpClient)
+            DefaultApi(config.batteryHost, tonAPIHttpClient),
+            DefaultApi(config.batteryTestnetHost, tonAPIHttpClient)
         )
-    }
-
-    private val emulationJSONAdapter: JsonAdapter<MessageConsequences> by lazy {
-        Serializer.moshi.adapter(MessageConsequences::class.java)
     }
 
     val tron = TronApi(config, defaultHttpClient, batteryApi.get(false))
@@ -198,7 +193,7 @@ class API(
     fun getBatteryBalance(
         tonProofToken: String,
         testnet: Boolean,
-        units: UnitsGetBalance = UnitsGetBalance.ton
+        units: DefaultApi.UnitsGetBalance = DefaultApi.UnitsGetBalance.ton
     ): Balance? {
         return withRetry { battery(testnet).getBalance(tonProofToken, units) }
     }
@@ -210,7 +205,7 @@ class API(
     private fun isOkStatus(testnet: Boolean): Boolean {
         try {
             val status = withRetry {
-                provider.blockchain.get(testnet).status()
+                provider.utilities.get(testnet).status()
             } ?: return false
             if (!status.restOnline) {
                 return false
@@ -329,6 +324,7 @@ class API(
             lt = event.lt,
             inProgress = event.inProgress,
             extra = 0L,
+            progress = 0f,
         )
         listOf(accountEvent)
     }
@@ -400,7 +396,7 @@ class API(
             accounts(testnet).getAccountJettonsBalances(
                 accountId = accountId,
                 currencies = currency?.let { listOf(it) },
-                extensions = extensions,
+                supportedExtensions = extensions,
             ).balances
         } ?: return null
         return jettonsBalances.map { BalanceEntity(it) }.filter { it.value.isPositive }
@@ -439,7 +435,11 @@ class API(
             val wallets = withRetry {
                 wallet(testnet).getWalletsByPublicKey(query).accounts
             } ?: return emptyList()
-            wallets.map { AccountDetailsEntity(query, it, testnet) }.map {
+            wallets.map { AccountDetailsEntity(
+                query = query,
+                wallet = it,
+                testnet = testnet
+            ) }.map {
                 if (it.walletVersion == WalletVersion.UNKNOWN) {
                     it.copy(
                         walletVersion = BaseWalletContract.resolveVersion(
@@ -566,7 +566,7 @@ class API(
         cell: Cell,
         testnet: Boolean,
     ): String? {
-        val request = io.batteryapi.models.EstimateGaslessCostRequest(cell.base64(), false)
+        val request = EstimateGaslessCostRequest(cell.base64(), false)
 
         return withRetry {
             battery(testnet).estimateGaslessCost(jettonMaster, request, tonProofToken).commission
@@ -601,7 +601,11 @@ class API(
         val withBattery = supportedByBattery && allowedByBattery
 
         val string = response.body?.string() ?: return null
-        val consequences = emulationJSONAdapter.fromJson(string) ?: return null
+        val consequences = try {
+            Serializer.JSON.decodeFromString<MessageConsequences>(string)
+        } catch (e: Throwable) {
+            return null
+        }
         return Pair(consequences, withBattery)
     }
 
@@ -619,7 +623,7 @@ class API(
         val request = EmulateMessageToWalletRequest(
             boc = boc,
             params = params,
-            safeMode = safeModeEnabled
+            // safeMode = safeModeEnabled
         )
         withRetry {
             emulation(testnet).emulateMessageToWallet(request)
@@ -667,12 +671,15 @@ class API(
             return@withContext SendBlockchainState.STATUS_ERROR
         }
 
+        val meta = hashMapOf(
+            "platform" to "android",
+            "version" to appVersionName,
+            "source" to source,
+            "confirmation_time" to confirmationTime.toString()
+        )
         val request = SendBlockchainMessageRequest(
             boc = boc,
-            platform = "android",
-            version = appVersionName,
-            source = source,
-            confirmationTime = confirmationTime
+            meta = meta
         )
         withRetry {
             blockchain(testnet).sendBlockchainMessage(request)
