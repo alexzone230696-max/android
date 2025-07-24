@@ -1,6 +1,7 @@
 package com.tonapps.wallet.api
 
 import android.os.SystemClock
+import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.tonapps.network.OkHttpError
 import io.infrastructure.ClientError

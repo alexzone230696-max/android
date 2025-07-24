@@ -3,6 +3,7 @@ package com.tonapps.wallet.api
 import android.content.Context
 import android.net.Uri
 import android.util.ArrayMap
+import android.util.Log
 import com.tonapps.blockchain.ton.contract.BaseWalletContract
 import com.tonapps.blockchain.ton.contract.WalletVersion
 import com.tonapps.blockchain.ton.extensions.EmptyPrivateKeyEd25519
@@ -20,6 +21,7 @@ import com.tonapps.network.post
 import com.tonapps.network.postJSON
 import com.tonapps.network.requestBuilder
 import com.tonapps.network.sse
+import com.tonapps.network.ws.WSConnection
 import com.tonapps.wallet.api.core.SourceAPI
 import com.tonapps.wallet.api.entity.AccountDetailsEntity
 import com.tonapps.wallet.api.entity.AccountEventEntity
@@ -28,6 +30,7 @@ import com.tonapps.wallet.api.entity.ChartEntity
 import com.tonapps.wallet.api.entity.ConfigEntity
 import com.tonapps.wallet.api.entity.OnRampArgsEntity
 import com.tonapps.wallet.api.entity.OnRampMerchantEntity
+import com.tonapps.wallet.api.entity.SwapEntity
 import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.api.internal.ConfigRepository
 import com.tonapps.wallet.api.internal.InternalApi
@@ -70,6 +73,7 @@ import org.ton.cell.Cell
 import org.ton.crypto.hex
 import java.math.BigDecimal
 import java.util.Locale
+import kotlin.jvm.Throws
 
 class API(
     private val context: Context,
@@ -78,6 +82,10 @@ class API(
 
     private val internalApi = InternalApi(context, defaultHttpClient, appVersionName)
     private val configRepository = ConfigRepository(context, scope, internalApi)
+
+    private val serverTimeProvider: ServerTimeProvider by lazy {
+        ServerTimeProvider(context)
+    }
 
     val config: ConfigEntity
         get() = configRepository.configEntity
@@ -139,14 +147,13 @@ class API(
         Provider(config.tonapiMainnetHost, config.tonapiTestnetHost, tonAPIHttpClient)
     }
 
-    private val batteryApi by lazy {
-        SourceAPI(
-            DefaultApi(config.batteryHost, tonAPIHttpClient),
-            DefaultApi(config.batteryTestnetHost, tonAPIHttpClient)
-        )
+    private val batteryProvider: BatteryProvider by lazy {
+        BatteryProvider(config.batteryHost, config.batteryTestnetHost, tonAPIHttpClient)
     }
 
-    val tron = TronApi(config, defaultHttpClient, batteryApi.get(false))
+    val tron: TronApi by lazy {
+        TronApi(config, defaultHttpClient, batteryProvider.default.get(false))
+    }
 
     fun accounts(testnet: Boolean) = provider.accounts.get(testnet)
 
@@ -168,7 +175,11 @@ class API(
 
     fun rates() = provider.rates.get(false)
 
-    fun battery(testnet: Boolean) = batteryApi.get(testnet)
+    fun battery(testnet: Boolean) = batteryProvider.default.get(testnet)
+
+    fun batteryWallet(testnet: Boolean) = batteryProvider.wallet.get(testnet)
+
+    fun batteryEmulation(testnet: Boolean) = batteryProvider.emulation.get(testnet)
 
     fun getBatteryConfig(testnet: Boolean): Config? {
         return withRetry { battery(testnet).getConfig() }
@@ -180,10 +191,16 @@ class API(
 
     fun getOnRampData(country: String) = internalApi.getOnRampData(country)
 
+    fun getOnRampPaymentMethods(country: String) = internalApi.getOnRampPaymentMethods(country)
+
+    fun getSwapAssets(): JSONArray = runCatching {
+        internalApi.getSwapAssets()?.let(::JSONArray)
+    }.getOrNull() ?: JSONArray()
+
+    @kotlin.Throws
     suspend fun calculateOnRamp(args: OnRampArgsEntity): List<OnRampMerchantEntity> = withContext(Dispatchers.IO) {
-        val data = internalApi.calculateOnRamp(args) ?: return@withContext emptyList()
-        val items = JSONObject(data).getJSONArray("items")
-        items.map { OnRampMerchantEntity(it) }
+        val data = internalApi.calculateOnRamp(args) ?: throw Exception("Empty response")
+        JSONObject(data).getJSONArray("items").map { OnRampMerchantEntity(it) }
     }
 
     suspend fun getEthenaStakingAPY(address: String): BigDecimal = withContext(Dispatchers.IO) {
@@ -270,6 +287,10 @@ class API(
     fun getBurnAddress() = config.burnZeroDomain.ifBlank {
         "UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ"
     }
+
+    fun swapOmnistonBuild(args: SwapEntity.Args) = withRetry {
+        internalApi.swapOmnistonBuild(args)
+    } ?: throw Exception("Failed to build swap messages")
 
     fun getEvents(
         accountId: String,
@@ -896,9 +917,18 @@ class API(
         }
     }
 
-    fun getServerTime(testnet: Boolean) = withRetry {
-        liteServer(testnet).getRawTime().time
-    } ?: (System.currentTimeMillis() / 1000).toInt()
+    fun getServerTime(testnet: Boolean): Int {
+        val time = serverTimeProvider.getServerTime(testnet)
+        if (time == null) {
+            val serverTimeSeconds = withRetry { liteServer(testnet).getRawTime().time }
+            if (serverTimeSeconds == null) {
+                return (System.currentTimeMillis() / 1000).toInt()
+            }
+            serverTimeProvider.setServerTime(testnet, serverTimeSeconds)
+            return serverTimeSeconds
+        }
+        return time
+    }
 
     suspend fun resolveCountry(): String? = withContext(Dispatchers.IO) {
         if (cachedCountry == null) {

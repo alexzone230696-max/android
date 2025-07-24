@@ -35,41 +35,31 @@ class PurchaseRepository(
     timeout = TimeUnit.DAYS.toMillis(1)
 ) {
 
-    private companion object {
-        private const val SEND_CURRENCY_KEY = "send_currency"
-        private const val RECEIVE_CURRENCY_KEY = "receive_currency"
-    }
-
-    private val prefs = context.prefs("onramp")
     private val onRampCache = simple<OnRamp.Data>(context, "onRamp", TimeUnit.DAYS.toMillis(1))
-
-    private val _sendCurrencyFlow = MutableStateFlow<WalletCurrency?>(null)
-    val sendCurrencyFlow = _sendCurrencyFlow.asStateFlow()
-
-    private val _receiveCurrencyFlow = MutableStateFlow(WalletCurrency.TON)
-    val receiveCurrencyFlow = _receiveCurrencyFlow.asStateFlow()
-
-    var sendCurrency: WalletCurrency?
-        get() = prefs.getParcelable(SEND_CURRENCY_KEY)
-        set(value) {
-            _sendCurrencyFlow.value = value
-            prefs.putParcelable(SEND_CURRENCY_KEY, value)
-        }
-
-    var receiveCurrency: WalletCurrency
-        get() = prefs.getParcelable(RECEIVE_CURRENCY_KEY) ?: WalletCurrency.TON
-        set(value) {
-            _receiveCurrencyFlow.value = value
-            prefs.putParcelable(RECEIVE_CURRENCY_KEY, value)
-        }
-
-    init {
-        _sendCurrencyFlow.value = sendCurrency
-        _receiveCurrencyFlow.value = receiveCurrency
-    }
+    private val paymentMethodCache = simpleJSON<List<OnRamp.PaymentMethodMerchant>>(context,"payment_methods", TimeUnit.DAYS.toMillis(1))
 
     suspend fun getOnRamp(country: String): OnRamp.Data? = withContext(Dispatchers.IO) {
         getOnRampData(country)
+    }
+
+    private fun loadOnRampPaymentMethods(country: String): List<OnRamp.PaymentMethodMerchant> {
+        return try {
+            val data = api.getOnRampPaymentMethods(country) ?: throw Exception("No payment methods found for country: $country")
+            Serializer.JSON.decodeFromString<List<OnRamp.PaymentMethodMerchant>>(data)
+        } catch (e: Throwable) {
+            emptyList()
+        }
+    }
+
+    suspend fun getPaymentMethods(
+        country: String
+    ): List<OnRamp.PaymentMethodMerchant> = withContext(Dispatchers.IO) {
+        var list = paymentMethodCache.getCache(country) ?: emptyList()
+        if (list.isEmpty()) {
+            list = loadOnRampPaymentMethods(country)
+            paymentMethodCache.setCache(country, list)
+        }
+        list
     }
 
     private suspend fun loadOnRampData(country: String): OnRamp.Data? = withContext(Dispatchers.IO) {
