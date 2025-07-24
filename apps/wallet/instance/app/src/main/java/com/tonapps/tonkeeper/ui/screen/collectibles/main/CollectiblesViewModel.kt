@@ -1,7 +1,9 @@
 package com.tonapps.tonkeeper.ui.screen.collectibles.main
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.tonapps.blockchain.ton.extensions.toRawAddress
 import com.tonapps.extensions.flattenFirst
 import com.tonapps.network.NetworkMonitor
 import com.tonapps.tonkeeper.extensions.isSafeModeEnabled
@@ -13,6 +15,7 @@ import com.tonapps.tonkeeper.ui.screen.collectibles.main.list.Item
 import com.tonapps.wallet.api.API
 import com.tonapps.wallet.data.account.entities.WalletEntity
 import com.tonapps.wallet.data.collectibles.CollectiblesRepository
+import com.tonapps.wallet.data.collectibles.entities.DnsExpiringEntity
 import com.tonapps.wallet.data.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -23,9 +26,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import okhttp3.internal.wait
 
 class CollectiblesViewModel(
     app: Application,
@@ -43,17 +48,30 @@ class CollectiblesViewModel(
     val installId: String
         get() = settingsRepository.installId
 
+    private val expiringDomainsFlow = flow {
+        emit(collectiblesRepository.getDnsSoonExpiring(
+            accountId = wallet.accountId,
+            testnet = wallet.testnet
+        ).associateBy { it.addressRaw })
+    }
+
+    private val triggerFlow = combine(
+        settingsRepository.tokenPrefsChangedFlow,
+        settingsRepository.safeModeStateFlow,
+        ltFlow
+    ) { _, _, _ -> }
+
     val uiListStateFlow = combine(
         networkMonitor.isOnlineFlow,
         settingsRepository.hiddenBalancesFlow,
-        settingsRepository.tokenPrefsChangedFlow,
-        settingsRepository.safeModeStateFlow,
-        ltFlow,
-    ) { isOnline, hiddenBalances, _, _, _ ->
+        triggerFlow,
+        expiringDomainsFlow
+    ) { isOnline, hiddenBalances, _, expiringDomains ->
         stateFlow(
             wallet = wallet,
             hiddenBalances = hiddenBalances,
-            isOnline = isOnline
+            isOnline = isOnline,
+            expiringDomains = expiringDomains
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null).filterNotNull().flattenFirst()
 
@@ -69,16 +87,18 @@ class CollectiblesViewModel(
     private fun stateFlow(
         wallet: WalletEntity,
         hiddenBalances: Boolean,
-        isOnline: Boolean
+        isOnline: Boolean,
+        expiringDomains: Map<String, DnsExpiringEntity>
     ): Flow<UiListState> = flow {
         emit(UiListState.Loading)
-        emitAll(itemsFlow(wallet, hiddenBalances, isOnline))
+        emitAll(itemsFlow(wallet, hiddenBalances, isOnline, expiringDomains))
     }
 
     private fun itemsFlow(
         wallet: WalletEntity,
         hiddenBalances: Boolean,
         isOnline: Boolean,
+        expiringDomains: Map<String, DnsExpiringEntity>
     ): Flow<UiListState> = collectiblesRepository.getFlow(wallet.address, wallet.testnet, isOnline).map { result ->
         hasNfts = result.list.isNotEmpty()
         val safeMode = settingsRepository.isSafeModeEnabled(api)
@@ -98,7 +118,13 @@ class CollectiblesViewModel(
             if (nftPref.isHidden) {
                 continue
             }
-            uiItems.add(Item.Nft(wallet, nft.with(nftPref), hiddenBalances))
+            val expiringDomain = expiringDomains[nft.address.toRawAddress()]
+            uiItems.add(Item.Nft(
+                wallet = wallet,
+                entity = nft.with(nftPref),
+                hiddenBalance = hiddenBalances,
+                expiringDomainSoon = expiringDomain != null
+            ))
         }
 
         if (uiItems.isEmpty() && !result.cache) {

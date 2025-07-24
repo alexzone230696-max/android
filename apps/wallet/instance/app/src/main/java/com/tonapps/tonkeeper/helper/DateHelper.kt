@@ -3,13 +3,18 @@ package com.tonapps.tonkeeper.helper
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.tonapps.extensions.currentTimeMillis
+import com.tonapps.extensions.currentTimeSeconds
 import com.tonapps.tonkeeper.extensions.capitalized
 import com.tonapps.wallet.localization.Localization
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -42,6 +47,18 @@ object DateHelper {
         } else {
             "$day $month $year, $time"
         }
+    }
+
+    fun untilDate(timestamp: Long = currentTimeSeconds(), locale: Locale): String {
+        val startInstant = Instant.fromEpochSeconds(timestamp)
+
+        val zone = TimeZone.currentSystemDefault()
+        val oneYearLater = startInstant.plus(
+            DateTimePeriod(years = 1),
+            zone
+        )
+
+        return formatDate(oneYearLater, "dd MMM yyyy", locale)
     }
 
     fun timestampToDateString(timestamp: Long, locale: Locale): String {
