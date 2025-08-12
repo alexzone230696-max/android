@@ -10,6 +10,7 @@ import com.tonapps.icu.CurrencyFormatter.withCustomSymbol
 import com.tonapps.tonkeeper.core.Amount
 import com.tonapps.tonkeeper.core.InsufficientFundsException
 import com.tonapps.tonkeeper.extensions.getTitle
+import com.tonapps.tonkeeper.koin.api
 import com.tonapps.tonkeeper.ui.screen.battery.BatteryScreen
 import com.tonapps.tonkeeper.ui.screen.browser.more.BrowserMoreScreen
 import com.tonapps.tonkeeper.ui.screen.onramp.main.OnRampScreen
@@ -86,7 +87,8 @@ class InsufficientFundsDialog(private val fragment: BaseFragment) : ModalDialog(
         super.show()
         applyWalletTitle(wallet.label, singleWallet, type)
         applyDescription(balance, required, withRechargeBattery, type)
-        batteryButton.visibility = if (withRechargeBattery) View.VISIBLE else View.GONE
+        val isBatteryDisabled = context.api?.config?.flags?.disableBattery ?: false
+        batteryButton.visibility = if (withRechargeBattery && !isBatteryDisabled) View.VISIBLE else View.GONE
 
         val isBattery = type == InsufficientBalanceType.InsufficientBatteryChargesForFee
 

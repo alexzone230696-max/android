@@ -361,7 +361,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
 
         val isUsdt = error.selectedToken.isTrc20 || error.selectedToken.isUsdt
 
-        if (swapMethod != null && isUsdt) {
+        if (swapMethod != null && isUsdt && !viewModel.isTronDisabled) {
             val spannableString = SpannableString("$errorText $swapText")
             val start = spannableString.indexOf(swapTitle)
             spannableString.setSpan(

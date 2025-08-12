@@ -124,6 +124,12 @@ class SendViewModel(
     val installId: String
         get() = settingsRepository.installId
 
+    val isTronDisabled: Boolean
+        get() = api.config.flags.disableTron
+
+    val isBatteryDisabled: Boolean
+        get() = api.config.flags.disableBattery
+
     data class UserInput(
         val address: String = "",
         val amount: Coins = Coins.ZERO,
@@ -675,7 +681,7 @@ class SendViewModel(
             else -> BatteryTransaction.UNKNOWN
         }
         val batteryBalance = getBatteryBalance()
-        val batteryEnabled = !api.config.batteryDisabled && settingsRepository.batteryIsEnabledTx(
+        val batteryEnabled = !isBatteryDisabled && settingsRepository.batteryIsEnabledTx(
             wallet.accountId, txType
         )
         val required = when (type) {
@@ -904,7 +910,7 @@ class SendViewModel(
         excessesAddress: AddrStd,
         tonProofToken: String,
     ): SendFee.Battery? {
-        if (api.config.isBatteryDisabled) {
+        if (api.config.batterySendDisabled) {
             return null
         }
 
@@ -957,6 +963,11 @@ class SendViewModel(
         tokenAddress: String,
     ): SendFee.Gasless? {
         try {
+            if (api.config.flags.disableGasless) {
+                Log.d("SendViewModel", "Gasless fee calculation disabled by config")
+                return null
+            }
+
             val message = transfer.signForEstimation(
                 internalMessage = true,
                 jettonAmount = if (transfer.max) {

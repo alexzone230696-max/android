@@ -21,6 +21,7 @@ sealed class Item(type: Int) : BaseListItem(type) {
         const val TYPE_PROMO = 6
         const val TYPE_IAP = 7
         const val TYPE_RESTORE_IAP = 8
+        const val TYPE_UNAVAILABLE = 9
     }
 
     data class Battery(
@@ -91,6 +92,8 @@ sealed class Item(type: Int) : BaseListItem(type) {
     ) : Item(TYPE_IAP)
 
     data object RestoreIAP : Item(TYPE_RESTORE_IAP)
+
+    data object Unavailable : Item(TYPE_UNAVAILABLE)
 
     data object Space : Item(TYPE_SPACE)
 }

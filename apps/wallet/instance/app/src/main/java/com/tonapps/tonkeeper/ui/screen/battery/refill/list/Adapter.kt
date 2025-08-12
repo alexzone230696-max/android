@@ -2,8 +2,6 @@ package com.tonapps.tonkeeper.ui.screen.battery.refill.list
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.tonapps.tonkeeper.ui.screen.battery.recharge.list.holder.AddressHolder
-import com.tonapps.tonkeeper.ui.screen.battery.recharge.list.holder.AmountHolder
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.BatteryHolder
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.GiftHolder
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.IAPPackHolder
@@ -13,6 +11,7 @@ import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.RechargeMethod
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.RefundHolder
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.SettingsHolder
 import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.SpaceHolder
+import com.tonapps.tonkeeper.ui.screen.battery.refill.list.holder.UnavailableHolder
 import com.tonapps.uikit.list.BaseListAdapter
 import com.tonapps.uikit.list.BaseListHolder
 import com.tonapps.uikit.list.BaseListItem
@@ -36,6 +35,7 @@ class Adapter(
             Item.TYPE_PROMO -> PromoHolder(parent, onSubmitPromo)
             Item.TYPE_IAP -> IAPPackHolder(parent, onPackSelect)
             Item.TYPE_RESTORE_IAP -> IAPRestoreHolder(parent, onRestorePurchases)
+            Item.TYPE_UNAVAILABLE -> UnavailableHolder(parent)
             else -> throw IllegalArgumentException("Unknown view type: $viewType")
         }
     }

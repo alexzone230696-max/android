@@ -63,6 +63,9 @@ class BatteryRefillViewModel(
     private val environment: Environment,
     private val analytics: AnalyticsHelper,
 ) : BaseWalletVM(app) {
+    
+    private val isBatteryDisabled: Boolean
+        get() = api.config.flags.disableBattery
 
     private val _promoFlow = MutableStateFlow<String?>(null)
     private val promoFlow = _promoFlow.asStateFlow()
@@ -94,7 +97,7 @@ class BatteryRefillViewModel(
         uiItems.add(uiItemBattery(batteryBalance, api.config))
         uiItems.add(Item.Space)
 
-        if (BuildConfig.DEBUG || !api.config.batteryPromoDisable) {
+        if (!api.config.batteryPromoDisable && !isBatteryDisabled) {
             uiItems.add(Item.Promo(promoState, promoCode))
             uiItems.add(Item.Space)
         }
@@ -104,7 +107,7 @@ class BatteryRefillViewModel(
             uiItems.add(Item.Space)
         }
 
-        if (environment.isGooglePlayServicesAvailable && !api.config.disableBatteryIapModule) {
+        if (environment.isGooglePlayServicesAvailable && !api.config.disableBatteryIapModule && !isBatteryDisabled) {
             val tonPriceInUsd =
                 ratesRepository.getTONRates(WalletCurrency.USD).getRate(TokenEntity.TON.address)
 
@@ -124,25 +127,31 @@ class BatteryRefillViewModel(
 
         val rechargeMethodsItems = uiItemsRechargeMethods(wallet)
 
-        if (context.remoteConfig?.isBatteryCryptoRechargeDisable == false && rechargeMethodsItems.isNotEmpty()) {
+        if (!isBatteryDisabled && rechargeMethodsItems.isNotEmpty()) {
             uiItems.addAll(uiItemsRechargeMethods(wallet))
             uiItems.add(Item.Space)
         }
 
+        if (isBatteryDisabled) {
+            uiItems.add(Item.Unavailable)
+        }
+
         val tonProofToken = accountRepository.requestTonProofToken(wallet) ?: ""
 
-        uiItems.add(
-            Item.Refund(
-                wallet = wallet, refundUrl = "${api.config.batteryRefundEndpoint}?token=${
-                    URLEncoder.encode(
-                        tonProofToken, "UTF-8"
-                    )
-                }&testnet=${wallet.testnet}"
+        if (!isBatteryDisabled) {
+            uiItems.add(
+                Item.Refund(
+                    wallet = wallet, refundUrl = "${api.config.batteryRefundEndpoint}?token=${
+                        URLEncoder.encode(
+                            tonProofToken, "UTF-8"
+                        )
+                    }&testnet=${wallet.testnet}"
+                )
             )
-        )
 
-        uiItems.add(Item.Space)
-        uiItems.add(Item.RestoreIAP)
+            uiItems.add(Item.Space)
+            uiItems.add(Item.RestoreIAP)
+        }
 
         uiItems.toList()
     }.flowOn(Dispatchers.IO)
