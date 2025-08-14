@@ -332,6 +332,14 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
         )
     }
 
+    override fun onBackPressed(): Boolean {
+        if (!slidesView.isFirst) {
+            slidesView.prev()
+            return false
+        }
+        return super.onBackPressed()
+    }
+
     private fun applyTokenError(
         error: SendDestination.TokenError,
         swapMethod: WalletPurchaseMethodEntity?
@@ -826,8 +834,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
                 is SendFee.TokenFee -> {
                     val formattedAmount = CurrencyFormatter.format(
                         fee.amount.token.symbol,
-                        fee.amount.value,
-                        2
+                        fee.amount.value
                     )
                     val formattedFiat = CurrencyFormatter.formatFiat(
                         fee.fiatCurrency.code,

@@ -275,7 +275,7 @@ class TokenViewModel(
 
         items.add(
             Item.Balance(
-                balance = CurrencyFormatter.format(
+                balance = CurrencyFormatter.formatFull(
                     token.symbol,
                     headerBalance,
                     token.decimals
@@ -362,7 +362,7 @@ class TokenViewModel(
             val rateDiff24h: String
             val delta: CharSequence
             if (2 >= charts.size) {
-                fiatPrice = CurrencyFormatter.format(currency, token.rateNow, 4)
+                fiatPrice = CurrencyFormatter.format(currency, token.rateNow)
                 rateDiff24h = token.rateDiff24h
                 delta = ""
             } else {
@@ -389,7 +389,7 @@ class TokenViewModel(
                 val growPercentFormat = Formatter.percent(growPercent)
 
                 fiatPrice =
-                    CurrencyFormatter.format(settingsRepository.currency.code, token.rateNow, 4)
+                    CurrencyFormatter.format(settingsRepository.currency.code, token.rateNow)
                 rateDiff24h = growPercentFormat
                 delta = priceDeltaFormat
             }

@@ -151,10 +151,10 @@ class InsufficientFundsDialog(private val fragment: BaseFragment) : ModalDialog(
             return
         } else {
             val balanceFormat =
-                CurrencyFormatter.format(balance.symbol, balance.value, balance.decimals)
+                CurrencyFormatter.format(balance.symbol, balance.value)
                     .withCustomSymbol(context)
             val requiredFormat =
-                CurrencyFormatter.format(required.symbol, required.value, required.decimals)
+                CurrencyFormatter.format(required.symbol, required.value)
                     .withCustomSymbol(context)
 
             val resId =
@@ -180,10 +180,10 @@ class InsufficientFundsDialog(private val fragment: BaseFragment) : ModalDialog(
             return
         } else {
             val balanceFormat =
-                CurrencyFormatter.format(currency.code, balance.value, balance.decimals)
+                CurrencyFormatter.format(currency.code, balance.value)
                     .withCustomSymbol(context)
             val requiredFormat =
-                CurrencyFormatter.format(currency.code, required.value, required.decimals)
+                CurrencyFormatter.format(currency.code, required.value)
                     .withCustomSymbol(context)
 
             val resId =

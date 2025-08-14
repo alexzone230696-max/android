@@ -139,7 +139,7 @@ class UnStakeViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AvailableUiState())
 
     val amountFormatFlow = amountFlow.map { amount ->
-        CurrencyFormatter.format(TokenEntity.TON.symbol, amount)
+        CurrencyFormatter.formatFull(TokenEntity.TON.symbol, amount, 9)
     }
 
     val fiatFormatFlow = availableUiStateFlow.map { it.fiatFormat }
@@ -212,8 +212,8 @@ class UnStakeViewModel(
         val fiat = rates.convertTON(fee)
 
         Pair(
-            CurrencyFormatter.format(TokenEntity.TON.symbol, fee, TokenEntity.TON.decimals),
-            CurrencyFormatter.format(currency.code, fiat, currency.decimals)
+            CurrencyFormatter.format(TokenEntity.TON.symbol, fee),
+            CurrencyFormatter.format(currency.code, fiat)
         )
     }
 

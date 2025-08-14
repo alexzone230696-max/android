@@ -148,7 +148,7 @@ class StakingViewModel(
     }
 
     val amountFormatFlow = combine(amountFlow, tokenFlow) { amount, token ->
-        CurrencyFormatter.format(token.symbol, amount)
+        CurrencyFormatter.formatFull(token.symbol, amount, token.decimals)
     }
 
     val apyFormatFlow = combine(
@@ -161,7 +161,7 @@ class StakingViewModel(
         val apyFormat = CurrencyFormatter.formatPercent(info.apy)
         if (amount.isPositive) {
             val earning = amount.multiply(pool.apy).divide(100)
-            "%s ≈ %s · %s".format(
+            "%s ≈ %s · %s".format(
                 getString(Localization.staking_apy),
                 apyFormat,
                 CurrencyFormatter.format(token.symbol, earning)
@@ -309,11 +309,10 @@ class StakingViewModel(
         val fee = StakingPool.getTotalFee(extra.value, pool.implementation)
 
         val fiat = rates.convertTON(fee)
+        val first = CurrencyFormatter.format(TokenEntity.TON.symbol, fee)
+        val second = CurrencyFormatter.formatFiat(currency.code, fiat)
 
-        Pair(
-            CurrencyFormatter.format(TokenEntity.TON.symbol, fee, TokenEntity.TON.decimals),
-            CurrencyFormatter.format(currency.code, fiat, currency.decimals)
-        )
+        Pair(first, second)
     }
 
     fun stake(

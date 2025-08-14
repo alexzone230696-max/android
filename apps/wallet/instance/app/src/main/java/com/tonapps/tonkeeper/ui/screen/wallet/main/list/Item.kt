@@ -367,7 +367,6 @@ sealed class Item(type: Int): BaseListItem(type), Parcelable {
                 CurrencyFormatter.formatFiat(
                     currency = currencyCode,
                     value = token.rateNow,
-                    customScale = 2,
                     roundingMode = RoundingMode.UP
                 )
             } else {

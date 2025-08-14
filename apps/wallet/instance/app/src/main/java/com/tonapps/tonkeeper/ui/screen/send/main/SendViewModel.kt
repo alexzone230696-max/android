@@ -302,7 +302,6 @@ class SendViewModel(
         val remainingFormat = CurrencyFormatter.format(
             currency = token.symbol,
             value = remainingToken,
-            customScale = 2,
             roundingMode = RoundingMode.DOWN,
             replaceSymbol = false
         )
@@ -313,7 +312,6 @@ class SendViewModel(
             convertedFormat = CurrencyFormatter.format(
                 currency = convertedCode,
                 value = converted,
-                customScale = 2,
                 roundingMode = RoundingMode.DOWN,
                 replaceSymbol = false
             ),
@@ -368,12 +366,11 @@ class SendViewModel(
             value = amount,
             converted = rates.convert(token.address, amount),
             format = CurrencyFormatter.format(
-                token.symbol, amount, token.decimals, RoundingMode.UP, false
+                token.symbol, amount, RoundingMode.UP, false
             ),
             convertedFormat = CurrencyFormatter.format(
                 currency.code,
                 rates.convert(token.address, amount),
-                token.decimals,
                 RoundingMode.UP,
             ),
         )
@@ -470,13 +467,10 @@ class SendViewModel(
         SendTransaction.Amount(
             value = value,
             converted = rates.convert(token.address, value),
-            format = CurrencyFormatter.format(
-                token.symbol, value, token.decimals, RoundingMode.UP, false
-            ),
+            format = CurrencyFormatter.formatFull(token.symbol, value, token.decimals),
             convertedFormat = CurrencyFormatter.format(
                 currency.code,
                 rates.convert(token.address, value),
-                token.decimals,
                 RoundingMode.UP,
             ),
         )
@@ -1080,15 +1074,14 @@ class SendViewModel(
                 format = if (fee is SendFee.TokenFee) {
                     CurrencyFormatter.format(
                         fee.amount.token.symbol,
-                        fee.amount.value,
-                        fee.amount.token.decimals
+                        fee.amount.value
                     )
                 } else "",
                 convertedFormat = if (fee is SendFee.TokenFee) {
                     val rates = ratesRepository.getRates(currency, fee.amount.token.address)
                     val converted = rates.convert(fee.amount.token.address, fee.amount.value)
                     CurrencyFormatter.format(
-                        currency.code, converted, currency.decimals
+                        currency.code, converted
                     )
                 } else "",
                 showToggle = showToggle,

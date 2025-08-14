@@ -111,6 +111,7 @@ open class WebViewFixed @JvmOverloads constructor(
         settings.textSize = WebSettings.TextSize.NORMAL
         settings.setGeolocationEnabled(false)
 
+
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)
         }
