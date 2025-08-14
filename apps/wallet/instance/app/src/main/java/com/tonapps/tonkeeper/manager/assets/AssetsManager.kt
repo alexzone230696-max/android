@@ -56,50 +56,42 @@ class AssetsManager(
     ): List<AssetsEntity>? {
         val tokens = getTokens(wallet, currency, refresh)
         var staked = getStaked(wallet, tokens.map { it.token }, currency, refresh)
-        val isEthenaEnabled = api.config.enabledStaking.contains("ethena")
 
-        val filteredTokens =
-            if (isEthenaEnabled) {
-                val items = tokens.filter { !it.token.isLiquid && !it.token.isUSDe }.toMutableList()
-                val tokenTsUsde =
-                    tokens.firstOrNull { it.token.address.equalsAddress(TokenEntity.TON_TS_USDE) }?.token
-                val tokenUsde =
-                    tokens.firstOrNull { it.token.address.equalsAddress(TokenEntity.TON_USDE) }?.token
-                tokenUsde?.let {
-                    if (tokenTsUsde != null) {
-                        val rates = ratesRepository.getRates(
-                            currency,
-                            listOf(it.address, tokenTsUsde.address)
-                        )
-                        val stakedUsde = rates.convert(
-                            from = WalletCurrency.TS_USDE_TON_ETHENA,
-                            value = tokenTsUsde.balance.value,
-                            to = WalletCurrency.USDE_TON_ETHENA
-                        )
-                        val balance =
-                            it.balance.copy(value = it.balance.value + stakedUsde)
-                        items.add(
-                            AssetsEntity.Token(
-                                token = it.copy(
-                                    balance = balance,
-                                    fiatRate = TokenRateEntity(
-                                        currency = currency,
-                                        fiat = rates.convert(it.address, balance.value),
-                                        rate = rates.getRate(it.address),
-                                        rateDiff24h = rates.getDiff24h(it.address)
-                                    )
-                                )
+        val filteredTokens = tokens.filter { !it.token.isLiquid && !it.token.isUSDe }.toMutableList()
+        val tokenTsUsde =
+            tokens.firstOrNull { it.token.address.equalsAddress(TokenEntity.TON_TS_USDE) }?.token
+        val tokenUsde =
+            tokens.firstOrNull { it.token.address.equalsAddress(TokenEntity.TON_USDE) }?.token
+        tokenUsde?.let {
+            if (tokenTsUsde != null) {
+                val rates = ratesRepository.getRates(
+                    currency,
+                    listOf(it.address, tokenTsUsde.address)
+                )
+                val stakedUsde = rates.convert(
+                    from = WalletCurrency.TS_USDE_TON_ETHENA,
+                    value = tokenTsUsde.balance.value,
+                    to = WalletCurrency.USDE_TON_ETHENA
+                )
+                val balance =
+                    it.balance.copy(value = it.balance.value + stakedUsde)
+                filteredTokens.add(
+                    AssetsEntity.Token(
+                        token = it.copy(
+                            balance = balance,
+                            fiatRate = TokenRateEntity(
+                                currency = currency,
+                                fiat = rates.convert(it.address, balance.value),
+                                rate = rates.getRate(it.address),
+                                rateDiff24h = rates.getDiff24h(it.address)
                             )
                         )
-                    } else {
-                        items.add(AssetsEntity.Token(token = it))
-                    }
-                }
-
-                items
+                    )
+                )
             } else {
-                tokens.filter { !it.token.isTsTON }
+                filteredTokens.add(AssetsEntity.Token(token = it))
             }
+        }
         val list = (filteredTokens + staked).sortedBy { it.fiat }.reversed()
         if (list.isEmpty()) {
             return null

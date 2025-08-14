@@ -2,7 +2,6 @@ package com.tonapps.tonkeeper.ui.screen.token.viewer.list
 
 import android.view.ViewGroup
 import com.tonapps.tonkeeper.ui.screen.token.viewer.list.holder.AboutEthenaHolder
-import com.tonapps.tonkeeper.ui.screen.token.viewer.list.holder.AboutEthenaStakingHolder
 import com.tonapps.tonkeeper.ui.screen.token.viewer.list.holder.ActionsHolder
 import com.tonapps.tonkeeper.ui.screen.token.viewer.list.holder.BalanceHolder
 import com.tonapps.tonkeeper.ui.screen.token.viewer.list.holder.BatteryBannerHolder
@@ -26,7 +25,6 @@ class TokenAdapter(
             Item.TYPE_CHART -> ChartHolder(parent, chartPeriodCallback)
             Item.TYPE_W5_BANNER -> W5BannerHolder(parent)
             Item.TYPE_BATTERY_BANNER -> BatteryBannerHolder(parent)
-            Item.TYPE_ABOUT_ETHENA_STAKING -> AboutEthenaStakingHolder(parent)
             Item.TYPE_ABOUT_ETHENA -> AboutEthenaHolder(parent)
             Item.TYPE_SPACE -> SpaceHolder(parent)
             Item.TYPE_ETHENA_BALANCE -> EthenaBalanceHolder(parent)

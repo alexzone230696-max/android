@@ -4,12 +4,10 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.tonapps.blockchain.ton.contract.BaseWalletContract
 import com.tonapps.blockchain.ton.contract.WalletVersion
-import com.tonapps.blockchain.ton.extensions.equalsAddress
 import com.tonapps.blockchain.ton.extensions.toAccountId
 import com.tonapps.icu.Coins
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.icu.Formatter
-import com.tonapps.tonkeeper.RemoteConfig
 import com.tonapps.tonkeeper.api.getCurrencyCodeByCountry
 import com.tonapps.tonkeeper.core.entities.WalletPurchaseMethodEntity
 import com.tonapps.tonkeeper.core.history.ActionOptions
@@ -35,10 +33,6 @@ import com.tonapps.wallet.data.purchase.PurchaseRepository
 import com.tonapps.wallet.data.rates.RatesRepository
 import com.tonapps.wallet.data.settings.ChartPeriod
 import com.tonapps.wallet.data.settings.SettingsRepository
-import com.tonapps.wallet.data.staking.StakingPool
-import com.tonapps.wallet.data.staking.StakingRepository
-import com.tonapps.wallet.data.staking.entities.PoolEntity
-import com.tonapps.wallet.data.staking.entities.StakingEntity
 import com.tonapps.wallet.data.token.TokenRepository
 import com.tonapps.wallet.data.token.entities.AccountTokenEntity
 import com.tonapps.wallet.localization.Localization
@@ -48,7 +42,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -70,7 +63,6 @@ class TokenViewModel(
     private val historyHelper: HistoryHelper,
     private val batteryRepository: BatteryRepository,
     private val purchaseRepository: PurchaseRepository,
-    private val stakingRepository: StakingRepository,
     private val ratesRepository: RatesRepository,
     private val transactionManager: TransactionManager,
 ) : BaseWalletVM(app) {
@@ -222,7 +214,7 @@ class TokenViewModel(
             listOfNotNull(token.address, tokenTsUsde?.address)
         )
 
-        if (token.isUSDe && !rawUsde && !usdeDisabled) {
+        if (token.isUSDe && !rawUsde) {
             val stonfiBalance = tokenTsUsde?.let {
                 rates.convert(
                     from = WalletCurrency.TS_USDE_TON_ETHENA,
@@ -261,6 +253,7 @@ class TokenViewModel(
                         wallet = wallet,
                         staked = true,
                         methodType = stonfiMethod.type,
+                        showApy = !usdeDisabled,
                         apy = CurrencyFormatter.formatPercent(stonfiMethod.apy),
                         balance = stonfiBalance,
                         balanceFormat = CurrencyFormatter.format(
@@ -306,6 +299,9 @@ class TokenViewModel(
 
         if (balanceItems.isNotEmpty()) {
             items.addAll(sortedBalanceItems)
+            if (!rawUsde && token.isUSDe && usdeDisabled) {
+                items.add(Item.Space)
+            }
         }
 
         if (token.isUSDe && !usdeDisabled && !rawUsde) {
@@ -327,12 +323,8 @@ class TokenViewModel(
             }
 
             ethena?.about?.let {
-                items.add(Item.AboutEthena(description = it.description, faqUrl = it.faqUrl))
+                items.add(Item.AboutEthena(description = it.description, url = it.aboutUrl))
             }
-        }
-
-        if (token.isTsUSDe && !usdeDisabled && ethena != null) {
-            items.add(Item.AboutEthenaStaking(description = ethena.about.tsusdeDescription))
         }
 
         if (token.isUsdt && !wallet.isW5 && wallet.hasPrivateKey && settingsRepository.isUSDTW5(

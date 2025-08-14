@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.ArrayMap
 import android.util.Log
+import androidx.core.net.toUri
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.tonapps.extensions.isDebug
 import com.tonapps.extensions.locale
@@ -86,32 +87,51 @@ internal class InternalApi(
         return JSONObject(body)
     }
 
+    private fun swapEndpoint(path: String): String {
+        val builder = "https://swap.tonkeeper.com".toUri().buildUpon()
+            .appendEncodedPath(path)
+        _deviceCountry?.let {
+            builder.appendQueryParameter("device_country_code", _deviceCountry)
+            builder.appendQueryParameter("country", _storeCountry ?: _deviceCountry)
+        }
+        _storeCountry?.let {
+            builder.appendQueryParameter("store_country_code", _storeCountry)
+        }
+
+        return builder.build().toString()
+    }
+
     fun swapOmnistonBuild(args: SwapEntity.Args): SwapEntity.Messages {
         val json = Serializer.JSON.encodeToString(args)
         val response = okHttpClient.postJSON(
-            url = "https://swap.tonkeeper.com/v2/swap/omniston/build",
+            url = swapEndpoint("v2/swap/omniston/build"),
             json = json
         ).body?.string() ?: throw IllegalStateException("Internal API request failed")
         return Serializer.JSON.decodeFromString(response)
     }
 
     fun getSwapAssets() = withRetry {
-        okHttpClient.get("https://swap.tonkeeper.com/v2/swap/assets")
+        okHttpClient.get(swapEndpoint("v2/swap/assets"))
     }
 
     fun getOnRampData() = withRetry {
-        okHttpClient.get("https://swap.tonkeeper.com/v2/onramp/currencies?country=$_deviceCountry&store_country_code=$_storeCountry")
+        okHttpClient.get(swapEndpoint("v2/onramp/currencies"))
     }
 
     fun getOnRampPaymentMethods() = withRetry {
-        okHttpClient.get("https://swap.tonkeeper.com/v2/onramp/payment_methods?country=$_deviceCountry&store_country_code=$_storeCountry")
+        okHttpClient.get(swapEndpoint("v2/onramp/payment_methods"))
     }
 
     fun calculateOnRamp(args: OnRampArgsEntity): String? {
-        val url =
-            "https://swap.tonkeeper.com/v2/onramp/calculate?country=$_deviceCountry&store_country_code=$_storeCountry"
-        val json = args.toJSON().toString()
-        return withRetry { okHttpClient.postJSON(url, json).body.string() }
+        val json = args.toJSON()
+        _deviceCountry?.let { json.put("country", _deviceCountry) }
+        Log.d("InternalAPI", "json: $json")
+        return withRetry {
+            okHttpClient.postJSON(
+                swapEndpoint("v2/onramp/calculate"),
+                json.toString()
+            ).body.string()
+        }
     }
 
     fun getNotifications(): List<NotificationEntity> {

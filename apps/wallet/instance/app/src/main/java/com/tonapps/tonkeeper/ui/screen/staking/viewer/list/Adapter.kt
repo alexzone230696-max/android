@@ -1,7 +1,6 @@
 package com.tonapps.tonkeeper.ui.screen.staking.viewer.list
 
 import android.view.ViewGroup
-import com.tonapps.tonkeeper.ui.screen.staking.viewer.list.holder.AboutEthenaHolder
 import com.tonapps.tonkeeper.ui.screen.staking.viewer.list.holder.ActionsHolder
 import com.tonapps.tonkeeper.ui.screen.staking.viewer.list.holder.BalanceHolder
 import com.tonapps.tonkeeper.ui.screen.staking.viewer.list.holder.DetailsHolder
@@ -26,7 +25,6 @@ class Adapter: BaseListAdapter() {
             Item.TYPE_SPACE -> SpaceHolder(parent)
             Item.TYPE_DESCRIPTION -> DescriptionHolder(parent)
             Item.TYPE_ETHENA_DETAILS -> EthenaDetailsHolder(parent)
-            Item.TYPE_ABOUT_ETHENA -> AboutEthenaHolder(parent)
             else -> throw IllegalArgumentException("Unknown view type: $viewType")
         }
     }

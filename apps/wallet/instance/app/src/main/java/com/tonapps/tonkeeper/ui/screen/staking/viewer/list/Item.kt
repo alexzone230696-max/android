@@ -19,7 +19,6 @@ sealed class Item(type: Int): BaseListItem(type) {
         const val TYPE_SPACE = 6
         const val TYPE_DESCRIPTION = 7
         const val TYPE_ETHENA_DETAILS = 8
-        const val TYPE_ABOUT_ETHENA = 9
     }
 
     data class Balance(
@@ -104,17 +103,18 @@ sealed class Item(type: Int): BaseListItem(type) {
     data class Description(
         val description: String,
         val uri: Uri? = null,
+        val isEthena: Boolean = false,
     ): Item(TYPE_DESCRIPTION)
 
     data class EthenaDetails(
         val apyFormat: CharSequence,
+        val apyTitle: String,
+        val apyDescription: String,
         val bonusApyFormat: CharSequence? = null,
+        val bonusTitle: String? = null,
         val bonusDescription: String? = null,
         val bonusUrl: String? = null,
+        val faqUrl: String,
     ): Item(TYPE_ETHENA_DETAILS)
 
-    data class AboutEthena(
-        val description: String,
-        val faqUrl: String,
-    ): Item(TYPE_ABOUT_ETHENA)
 }

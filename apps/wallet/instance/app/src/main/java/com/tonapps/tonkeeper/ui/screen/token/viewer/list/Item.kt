@@ -23,7 +23,6 @@ sealed class Item(type: Int): BaseListItem(type) {
         const val TYPE_CHART = 2
         const val TYPE_W5_BANNER = 3
         const val TYPE_BATTERY_BANNER = 4
-        const val TYPE_ABOUT_ETHENA_STAKING = 5
         const val TYPE_ABOUT_ETHENA = 6
         const val TYPE_SPACE = 7
         const val TYPE_ETHENA_BALANCE = 8
@@ -101,13 +100,9 @@ sealed class Item(type: Int): BaseListItem(type) {
         val token: TokenEntity
     ): Item(TYPE_BATTERY_BANNER)
 
-    data class AboutEthenaStaking(
-        val description: String,
-    ): Item(TYPE_ABOUT_ETHENA_STAKING)
-
     data class AboutEthena(
         val description: String,
-        val faqUrl: String,
+        val url: String,
     ): Item(TYPE_ABOUT_ETHENA)
 
     data object Space: Item(TYPE_SPACE)
@@ -120,6 +115,7 @@ sealed class Item(type: Int): BaseListItem(type) {
         val balance: Coins,
         val balanceFormat: CharSequence,
         val fiatFormat: CharSequence,
+        val showApy: Boolean = true,
         val apy: CharSequence? = null,
         val fiatRate: CharSequence? = null,
         val rateDiff24h: String? = null,

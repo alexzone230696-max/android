@@ -42,7 +42,11 @@ class EthenaBalanceHolder(parent: ViewGroup) :
         if (item.staked) {
             iconView.visibility = View.VISIBLE
             item.iconRes?.let { iconView.setLocalRes(it) }
-            apyView.text = "${getString(Localization.staking_apy)} ≈ ${item.apy}"
+            apyView.text = if (item.showApy) {
+                context.getString(Localization.ethena_apy, item.apy)
+            } else {
+                getString(Localization.ethena)
+            }
         } else {
             iconView.visibility = View.GONE
             if (item.fiatRate != null && item.rateDiff24h != null) {

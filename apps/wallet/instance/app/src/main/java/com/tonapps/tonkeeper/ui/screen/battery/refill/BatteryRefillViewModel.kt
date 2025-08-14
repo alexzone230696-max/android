@@ -132,26 +132,20 @@ class BatteryRefillViewModel(
             uiItems.add(Item.Space)
         }
 
-        if (isBatteryDisabled) {
-            uiItems.add(Item.Unavailable)
-        }
-
         val tonProofToken = accountRepository.requestTonProofToken(wallet) ?: ""
 
-        if (!isBatteryDisabled) {
-            uiItems.add(
-                Item.Refund(
-                    wallet = wallet, refundUrl = "${api.config.batteryRefundEndpoint}?token=${
-                        URLEncoder.encode(
-                            tonProofToken, "UTF-8"
-                        )
-                    }&testnet=${wallet.testnet}"
-                )
+        uiItems.add(
+            Item.Refund(
+                wallet = wallet, refundUrl = "${api.config.batteryRefundEndpoint}?token=${
+                    URLEncoder.encode(
+                        tonProofToken, "UTF-8"
+                    )
+                }&testnet=${wallet.testnet}"
             )
+        )
 
-            uiItems.add(Item.Space)
-            uiItems.add(Item.RestoreIAP)
-        }
+        uiItems.add(Item.Space)
+        uiItems.add(Item.RestoreIAP(chargeEnabled = !isBatteryDisabled))
 
         uiItems.toList()
     }.flowOn(Dispatchers.IO)

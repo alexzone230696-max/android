@@ -1,6 +1,7 @@
 package com.tonapps.tonkeeper.ui.screen.staking.viewer
 
 import android.app.Application
+import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
 import com.tonapps.blockchain.ton.extensions.equalsAddress
 import com.tonapps.icu.Coins
@@ -43,6 +44,9 @@ class StakeViewerViewModel(
     private val transactionManager: TransactionManager,
 ) : BaseWalletVM(app) {
 
+    val usdeDisabled: Boolean
+        get() = api.config.flags.disableUsde
+
     private val ethenaMethodType: EthenaEntity.Method.Type? =
         if (ethenaType.isNotEmpty()) EthenaEntity.Method.Type.fromId(ethenaType) else null
 
@@ -65,7 +69,8 @@ class StakeViewerViewModel(
 
         val tokenUsde = tokens.firstOrNull { it.isUSDe }
         val tokenTsUsde = tokens.firstOrNull { it.isTsUSDe } ?: AccountTokenEntity.createEmpty(
-            TokenEntity.TS_USDE, wallet.accountId)
+            TokenEntity.TS_USDE, wallet.accountId
+        )
 
         if (method == null || tokenUsde == null) {
             return@combine uiItems
@@ -98,24 +103,29 @@ class StakeViewerViewModel(
                 hiddenBalance = settingsRepository.hiddenBalances,
             )
         )
-        uiItems.add(Item.Actions(wallet = wallet, ethenaMethod = method, unstakeDisabled = balance.isZero))
-        uiItems.add(Item.Space)
-        uiItems.add(
-            Item.EthenaDetails(
-                apyFormat = CurrencyFormatter.formatPercent(method.apy),
-                bonusApyFormat = method.bonusApy?.let { CurrencyFormatter.formatPercent(it) },
-                bonusDescription = method.bonusDescription,
-                bonusUrl = method.eligibleBonusUrl,
+        if (!usdeDisabled) {
+            uiItems.add(
+                Item.Actions(
+                    wallet = wallet,
+                    ethenaMethod = method,
+                    unstakeDisabled = balance.isZero
+                )
             )
-        )
-        uiItems.add(Item.Space)
-        uiItems.add(
-            Item.AboutEthena(
-                description = ethena.about.description,
-                faqUrl = ethena.about.faqUrl
+            uiItems.add(Item.Space)
+            uiItems.add(
+                Item.EthenaDetails(
+                    apyTitle = method.apyTitle,
+                    apyDescription = method.apyDescription,
+                    apyFormat = CurrencyFormatter.formatPercent(method.apy),
+                    bonusApyFormat = method.bonusApy?.let { CurrencyFormatter.formatPercent(it) },
+                    bonusTitle = method.bonusTitle,
+                    bonusDescription = method.bonusDescription,
+                    bonusUrl = method.eligibleBonusUrl,
+                    faqUrl = ethena.about.faqUrl,
+                )
             )
-        )
-        uiItems.add(Item.Space)
+            uiItems.add(Item.Space)
+        }
         uiItems.add(
             Item.Token(
                 iconUri = tokenTsUsde.token.imageUri,
@@ -129,7 +139,10 @@ class StakeViewerViewModel(
                 ),
                 fiat = tokenTsUsde.fiat,
                 fiatFormat = CurrencyFormatter.formatFiat(currency.code, tokenTsUsde.fiat),
-                rate = CurrencyFormatter.formatFiat(currency.code, rates.getRate(tokenTsUsde.address)),
+                rate = CurrencyFormatter.formatFiat(
+                    currency.code,
+                    rates.getRate(tokenTsUsde.address)
+                ),
                 rateDiff24h = rates.getDiff7d(tokenTsUsde.address),
                 verified = tokenTsUsde.token.verification == TokenEntity.Verification.whitelist,
                 testnet = wallet.testnet,
@@ -138,9 +151,17 @@ class StakeViewerViewModel(
                 wallet = wallet,
             )
         )
-        uiItems.add(Item.Description(ethena.about.tsusdeDescription))
-        uiItems.add(Item.Space)
-        uiItems.add(Item.Links(method.links))
+        if (!usdeDisabled) {
+            uiItems.add(
+                Item.Description(
+                    description = ethena.about.tsusdeDescription,
+                    isEthena = true,
+                    uri = ethena.about.faqUrl.toUri()
+                )
+            )
+            uiItems.add(Item.Space)
+            uiItems.add(Item.Links(method.links))
+        }
 
 
         uiItems
@@ -174,7 +195,13 @@ class StakeViewerViewModel(
 
         val stakingDisabled = !api.config.enabledStaking.contains(staked.pool.implementation.title)
 
-        uiItems.add(Item.Actions(wallet = wallet, poolAddress = poolAddress, stakeDisabled = stakingDisabled))
+        uiItems.add(
+            Item.Actions(
+                wallet = wallet,
+                poolAddress = poolAddress,
+                stakeDisabled = stakingDisabled
+            )
+        )
 
         if (liquidToken != null) {
             val tokenAddress = liquidToken.token.address
@@ -241,7 +268,8 @@ class StakeViewerViewModel(
 
     private suspend fun getData(refresh: Boolean = false) {
         val tokens =
-            tokenRepository.get(currency, wallet.accountId, wallet.testnet, refresh = refresh) ?: return
+            tokenRepository.get(currency, wallet.accountId, wallet.testnet, refresh = refresh)
+                ?: return
         _tokensFlow.value = tokens
 
         val ethenaData = if (ethenaMethodType != null) {

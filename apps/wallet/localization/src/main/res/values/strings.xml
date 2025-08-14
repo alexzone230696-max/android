@@ -690,11 +690,6 @@
     <string name="support_title">Need help?</string>
     <string name="support_subtitle">Ask us on Telegram — we’ll do our best to help.</string>
     <string name="ask_question">Ask a Question</string>
-    <string name="staking_ethena_apy" translatable="false">Ethena APY</string>
-    <string name="ethena_faq" translatable="false">Ethena FAQ</string>
-    <string name="staking_ethena_apy_subtitle">Regular Ethena APY</string>
-    <string name="staking_ethena_bonus_apy">Bonus APY in TON</string>
-    <string name="about_tsusde">About tsUSDe</string>
     <string name="about_usde">About USDe</string>
     <string name="empty_history">No transactions</string>
     <string name="staked_usde">Staked USDe</string>
@@ -702,4 +697,8 @@
     <string name="charging_unavailable">Battery charging is unavailable</string>
     <string name="ethena_operated_by">Operated by %1$s</string>
     <string name="deposit_and_stake">Deposit &amp; Stake</string>
+    <string name="ethena" translatable="false">Ethena</string>
+    <string name="ethena_apy">One-week avg. APY ≈ %1$s</string>
+    <string name="ethena_check_eligibility">Check Eligibility</string>
+    <string name="about_ethena">About Ethena</string>
 </resources>

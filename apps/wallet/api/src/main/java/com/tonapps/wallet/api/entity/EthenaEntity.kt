@@ -17,11 +17,13 @@ data class EthenaEntity(
         val description: String,
         val tsusdeDescription: String,
         val faqUrl: String,
+        val aboutUrl: String,
     ) : Parcelable {
         constructor(json: JSONObject) : this(
             description = json.getString("description"),
             tsusdeDescription = json.getString("tsusde_description"),
-            faqUrl = json.getString("faq_url")
+            faqUrl = json.getString("faq_url"),
+            aboutUrl = json.getString("about_url")
         )
     }
 
@@ -30,7 +32,10 @@ data class EthenaEntity(
         val type: Type,
         val name: String,
         val apy: BigDecimal,
+        val apyTitle: String,
+        val apyDescription: String,
         val bonusApy: BigDecimal?,
+        val bonusTitle: String?,
         val bonusDescription: String?,
         val eligibleBonusUrl: String?,
         val depositUrl: String,
@@ -54,10 +59,13 @@ data class EthenaEntity(
             type = Type.fromId(json.getString("type")),
             name = json.getString("name"),
             apy = BigDecimal.valueOf(json.getDouble("apy")),
+            apyTitle = json.getString("apy_title"),
+            apyDescription = json.getString("apy_description"),
             bonusApy = json.optString("bonus_apy").takeIf { it.isNotEmpty() }?.let {
                 BigDecimal(it)
             },
-            bonusDescription = json.optString("bonus_description"),
+            bonusTitle = json.optString("apy_bonus_title"),
+            bonusDescription = json.optString("apy_bonus_description"),
             eligibleBonusUrl = json.optString("eligible_bonus_url"),
             depositUrl = json.getString("deposit_url"),
             withdrawalUrl = json.getString("withdrawal_url"),

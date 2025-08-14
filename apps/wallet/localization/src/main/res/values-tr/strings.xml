@@ -598,9 +598,6 @@
     <string name="dns_onsale_error_title">Alan adı şu anda pazaryerinde satışta</string>
     <string name="dns_onsale_error_desc">Alan adını yenilemek için öncelikle onu satıştan kaldırmanız gerekmektedir.</string>
     <string name="choose_token">Jeton Seçin</string>
-    <string name="staking_ethena_apy_subtitle">Düzenli Ethena APY</string>
-    <string name="staking_ethena_bonus_apy">TON’da bonus APY</string>
-    <string name="about_tsusde">tsUSDe hakkında</string>
     <string name="about_usde">USDe hakkında</string>
     <string name="empty_history">İşlem yok</string>
     <string name="staked_usde">Stake edilmiş USDe</string>
@@ -608,5 +605,8 @@
     <string name="charging_unavailable">Batarya şarjı mevcut değil</string>
     <string name="ethena_operated_by">%1$s tarafından işletilmektedir</string>
     <string name="deposit_and_stake">Yatır &amp; Stake et</string>
+    <string name="ethena_apy">APY (7 günlük ort.) ≈ %1$s</string>
+    <string name="ethena_check_eligibility">Durumu Kontrol Et</string>
+    <string name="about_ethena">Ethena Hakkında</string>
 
 </resources>

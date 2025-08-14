@@ -18,14 +18,14 @@ class AboutEthenaHolder(parent: ViewGroup) :
 
     override fun onBind(item: Item.AboutEthena) {
         itemView.setOnClickListener {
-            BrowserHelper.open(context, item.faqUrl)
+            BrowserHelper.open(context, item.url)
         }
 
-        val faqText = getString(Localization.ethena_faq)
-        descriptionView.text = SpannableStringBuilder("${item.description} $faqText").apply {
+        val aboutText = getString(Localization.about_ethena)
+        descriptionView.text = SpannableStringBuilder("${item.description} $aboutText").apply {
             setSpan(
                 ForegroundColorSpan(context.textAccentColor),
-                length - faqText.length, length,
+                length - aboutText.length, length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
