@@ -108,10 +108,7 @@ class TokenViewModel(
         }
 
         combine(
-            tokenFlow,
-            tokensFlow,
-            chartFlow,
-            settingsRepository.walletPrefsChangedFlow
+            tokenFlow, tokensFlow, chartFlow, settingsRepository.walletPrefsChangedFlow
         ) { token, list, chart, _ ->
             buildItems(token, list, chart, tokenRepository.getEthena(wallet.accountId))
         }.launchIn(viewModelScope)
@@ -120,9 +117,9 @@ class TokenViewModel(
     private suspend fun getData(refresh: Boolean = false) {
         tronAddress = accountRepository.getTronAddress(wallet.id)
 
-        val list =
-            tokenRepository.get(settingsRepository.currency, wallet.accountId, wallet.testnet, refresh = refresh)
-                ?: return
+        val list = tokenRepository.get(
+            settingsRepository.currency, wallet.accountId, wallet.testnet, refresh = refresh
+        ) ?: return
         val token = list.firstOrNull { it.address == tokenAddress } ?: return
 
         val ethena = if (!rawUsde && token.isUSDe && !usdeDisabled) {
@@ -210,8 +207,7 @@ class TokenViewModel(
         val tokenTsUsde = tokens.firstOrNull { it.isTsUSDe }
 
         val rates = ratesRepository.getRates(
-            settingsRepository.currency,
-            listOfNotNull(token.address, tokenTsUsde?.address)
+            settingsRepository.currency, listOfNotNull(token.address, tokenTsUsde?.address)
         )
 
         if (token.isUSDe && !rawUsde) {
@@ -266,19 +262,16 @@ class TokenViewModel(
             }
         }
 
-        val sortedBalanceItems = balanceItems
-            .mapIndexed { index, item ->
-                item.copy(position = ListCell.getPosition(balanceItems.size, index))
-            }
+        val sortedBalanceItems = balanceItems.mapIndexed { index, item ->
+            item.copy(position = ListCell.getPosition(balanceItems.size, index))
+        }
 
         val headerFiat = rates.convert(token.address, headerBalance)
 
         items.add(
             Item.Balance(
                 balance = CurrencyFormatter.formatFull(
-                    token.symbol,
-                    headerBalance,
-                    token.decimals
+                    token.symbol, headerBalance, token.decimals
                 ),
                 fiat = CurrencyFormatter.format(currency, headerFiat),
                 iconUri = token.imageUri,
@@ -327,14 +320,13 @@ class TokenViewModel(
             }
         }
 
-        if (token.isUsdt && !wallet.isW5 && wallet.hasPrivateKey && settingsRepository.isUSDTW5(
+        if (token.isUsdt && !wallet.isW5 && wallet.hasPrivateKey && !api.config.flags.disableGasless && settingsRepository.isUSDTW5(
                 wallet.id
             )
         ) {
             items.add(
                 Item.W5Banner(
-                    wallet = wallet,
-                    addButton = !hasW5()
+                    wallet = wallet, addButton = !hasW5()
                 )
             )
         }
@@ -344,8 +336,7 @@ class TokenViewModel(
             if (batteryCharges < 300) {
                 items.add(
                     Item.BatteryBanner(
-                        wallet = wallet,
-                        token = token.balance.token
+                        wallet = wallet, token = token.balance.token
                     )
                 )
             }
@@ -412,8 +403,7 @@ class TokenViewModel(
     }
 
     private suspend fun loadHistory(
-        token: AccountTokenEntity,
-        beforeLt: Long? = null
+        token: AccountTokenEntity, beforeLt: Long? = null
     ) = withContext(Dispatchers.IO) {
         if (token.token.blockchain === Blockchain.TRON) {
             loadTronHistory(beforeLt)
@@ -423,8 +413,7 @@ class TokenViewModel(
     }
 
     private suspend fun loadTonHistory(
-        token: AccountTokenEntity,
-        beforeLt: Long? = null
+        token: AccountTokenEntity, beforeLt: Long? = null
     ) = withContext(Dispatchers.IO) {
         val accountEvents =
             eventsRepository.loadForToken(token.address, wallet.accountId, wallet.testnet, beforeLt)
@@ -454,8 +443,7 @@ class TokenViewModel(
             return@withContext
         }
 
-        val tonProofToken =
-            accountRepository.requestTonProofToken(wallet) ?: return@withContext
+        val tonProofToken = accountRepository.requestTonProofToken(wallet) ?: return@withContext
         val tronEvents = eventsRepository.loadTronEvents(tronAddress!!, tonProofToken, beforeLt)
             ?: return@withContext
         val walletEventItems = historyHelper.tronMapping(
@@ -486,13 +474,10 @@ class TokenViewModel(
     }
 
     private suspend fun mapping(
-        wallet: WalletEntity,
-        events: List<AccountEvent>
+        wallet: WalletEntity, events: List<AccountEvent>
     ): List<HistoryItem> {
         return historyHelper.mapping(
-            wallet = wallet,
-            events = events,
-            options = ActionOptions(
+            wallet = wallet, events = events, options = ActionOptions(
                 safeMode = settingsRepository.isSafeModeEnabled(api),
                 hiddenBalances = settingsRepository.hiddenBalances,
                 tronEnabled = tronUsdtEnabled,
@@ -527,16 +512,11 @@ class TokenViewModel(
     }
 
     private suspend fun loadChart(
-        token: AccountTokenEntity,
-        startDateSeconds: Long,
-        endDateSeconds: Long
+        token: AccountTokenEntity, startDateSeconds: Long, endDateSeconds: Long
     ) = withContext(Dispatchers.IO) {
         val chart = if (!token.isStable) {
             api.loadChart(
-                token.address,
-                settingsRepository.currency.code,
-                startDateSeconds,
-                endDateSeconds
+                token.address, settingsRepository.currency.code, startDateSeconds, endDateSeconds
             )
         } else {
             emptyList()
@@ -600,10 +580,7 @@ class TokenViewModel(
         if (method != null) {
             val currency = api.getCurrencyCodeByCountry(settingsRepository)
             WalletPurchaseMethodEntity(
-                method = method,
-                wallet = wallet,
-                currency = currency,
-                config = api.config
+                method = method, wallet = wallet, currency = currency, config = api.config
             )
         } else {
             null

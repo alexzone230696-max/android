@@ -49,6 +49,7 @@ internal class InternalApi(
         platform: String,
         build: String,
         boot: Boolean = false,
+        queryParams: Map<String, String> = emptyMap(),
     ): String = runBlocking {
         val builder = Uri.Builder()
         builder.scheme("https")
@@ -67,6 +68,10 @@ internal class InternalApi(
             builder.appendQueryParameter("device_country_code", it)
         }
 
+        queryParams.forEach {
+            builder.appendQueryParameter(it.key, it.value)
+        }
+
         builder.build().toString()
     }
 
@@ -77,8 +82,9 @@ internal class InternalApi(
         build: String = appVersionName,
         locale: Locale,
         boot: Boolean = false,
+        queryParams: Map<String, String> = emptyMap(),
     ): JSONObject {
-        val url = endpoint(path, testnet, platform, build, boot)
+        val url = endpoint(path, testnet, platform, build, boot, queryParams)
         val headers = ArrayMap<String, String>()
         headers["Accept-Language"] = locale.toString()
         val body = withRetry {
@@ -125,7 +131,6 @@ internal class InternalApi(
     fun calculateOnRamp(args: OnRampArgsEntity): String? {
         val json = args.toJSON()
         _deviceCountry?.let { json.put("country", _deviceCountry) }
-        Log.d("InternalAPI", "json: $json")
         return withRetry {
             okHttpClient.postJSON(
                 swapEndpoint("v2/onramp/calculate"),
@@ -228,7 +233,12 @@ internal class InternalApi(
     }
 
     fun getEthena(accountId: String): EthenaEntity? = withRetry {
-        val json = request("staking/ethena?address=$accountId", false, locale = context.locale)
+        val json = request(
+            "staking/ethena",
+            false,
+            locale = context.locale,
+            queryParams = mapOf("address" to accountId)
+        )
         EthenaEntity(json)
     }
 
