@@ -149,7 +149,11 @@ data class Coins(
                 v = "0"
             }
             return v
+        }
 
+
+        fun string(coins: Coins): String {
+            return coins.value.toPlainString()
         }
 
         inline fun <T> Iterable<T>.sumOf(selector: (T) -> Coins): Coins {
@@ -210,6 +214,10 @@ data class Coins(
             scale = decimals,
             roundingMode = RoundingMode.HALF_EVEN
         )
+    }
+
+    operator fun div(other: Float): Coins {
+        return of(value.divide(other.toBigDecimal(), mathContext), decimals)
     }
 
     operator fun rem(other: Coins) = of(value.remainder(other.value), decimals)

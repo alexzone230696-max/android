@@ -1,6 +1,7 @@
 package com.tonapps.wallet.data.purchase
 
 import android.content.Context
+import android.util.Log
 import com.tonapps.extensions.getParcelable
 import com.tonapps.extensions.prefs
 import com.tonapps.extensions.putParcelable
@@ -53,7 +54,7 @@ class PurchaseRepository(
 
     suspend fun getPaymentMethods(): List<OnRamp.PaymentMethodMerchant> = withContext(Dispatchers.IO) {
         var list = paymentMethodCache.getCache(api.country) ?: emptyList()
-        if (list.isEmpty()) {
+        if (list.isEmpty() || list.map { it.methods }.flatten().isEmpty()) {
             list = loadOnRampPaymentMethods()
             paymentMethodCache.setCache(api.country, list)
         }

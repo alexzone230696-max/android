@@ -154,7 +154,3 @@ fun OkHttpClient.sse(
     }
 }.cancellable()
 
-
-fun OkHttpClient.ws(url: String): Flow<WSEvent> = callbackFlow {
-
-}

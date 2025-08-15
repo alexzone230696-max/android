@@ -228,6 +228,15 @@ class SlideActionView @JvmOverloads constructor(
             invalidate()
         }
 
+        override fun onVisibilityChanged(changedView: View, visibility: Int) {
+            super.onVisibilityChanged(changedView, visibility)
+            if (visibility == VISIBLE) {
+                animator.start()
+            } else {
+                animator.cancel()
+            }
+        }
+
         override fun onAttachedToWindow() {
             super.onAttachedToWindow()
             animator.start()

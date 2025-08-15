@@ -41,6 +41,9 @@ class TwinInput(
             Coins.of(value, currency.decimals)
         }
 
+        val fiat: Boolean
+            get() = currency.fiat
+
         val address: String
             get() = currency.address
 
@@ -144,11 +147,16 @@ class TwinInput(
     val state: State
         get() = _stateFlow.value
 
-    fun createConvertFlow(ratesFlow: Flow<RatesEntity>, forType: Type) = combine(
+    fun createConvertFlow(ratesFlow: Flow<RatesEntity>, forType: Type, reductionFactor: Float = 1f) = combine(
         ratesFlow,
         stateFlow.filter { it.focus != forType }.distinctUntilChanged()
     ) { rates, inputsState ->
-        inputsState.convert(rates)
+        val converted = inputsState.convert(rates)
+        if (reductionFactor == 0f || reductionFactor == 1f || !converted.isPositive) {
+            converted
+        } else {
+            converted / reductionFactor
+        }
     }.distinctUntilChanged()
 
     fun getCurrency(forType: Type = state.focus) = if (forType == Type.Send) {
@@ -177,8 +185,10 @@ class TwinInput(
                 focus = it.focus.opposite
             )
         }
+    }
 
-        // updateValue(state.focus, getValue(state.focus.opposite))
+    fun updateValue() {
+        updateValue(state.focus, getValue(state.focus.opposite))
     }
 
     fun updateFocus(type: Type) {

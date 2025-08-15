@@ -3,6 +3,7 @@ package com.tonapps.tonkeeper.ui.screen.swap.omniston
 import android.app.Application
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tonapps.blockchain.ton.extensions.base64
 import com.tonapps.blockchain.ton.extensions.cellFromHex
@@ -14,6 +15,7 @@ import com.tonapps.extensions.singleValue
 import com.tonapps.icu.Coins
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.ledger.ton.Transaction
+import com.tonapps.network.SSEvent
 import com.tonapps.tonkeeper.core.InsufficientFundsException
 import com.tonapps.tonkeeper.extensions.getTransfers
 import com.tonapps.tonkeeper.extensions.getWalletTransfer
@@ -24,12 +26,15 @@ import com.tonapps.tonkeeper.helper.TwinInput.Companion.opposite
 import com.tonapps.tonkeeper.manager.assets.AssetsManager
 import com.tonapps.tonkeeper.manager.tx.TransactionManager
 import com.tonapps.tonkeeper.ui.base.BaseWalletVM
+import com.tonapps.tonkeeper.ui.component.coin.CoinEditText
+import com.tonapps.tonkeeper.ui.component.coin.CoinEditText.Companion.asString2
 import com.tonapps.tonkeeper.ui.screen.send.main.helper.InsufficientBalanceType
 import com.tonapps.tonkeeper.ui.screen.send.main.state.SendFee
 import com.tonapps.tonkeeper.ui.screen.send.transaction.SendTransactionScreen
 import com.tonapps.tonkeeper.ui.screen.swap.omniston.state.OmnistonStep
 import com.tonapps.tonkeeper.ui.screen.swap.omniston.state.SwapInputsState
 import com.tonapps.tonkeeper.ui.screen.swap.omniston.state.SwapQuoteState
+import com.tonapps.tonkeeper.ui.screen.swap.omniston.state.SwapRequest
 import com.tonapps.tonkeeper.ui.screen.swap.omniston.state.SwapTokenState
 import com.tonapps.tonkeeper.ui.screen.swap.picker.SwapPickerScreen
 import com.tonapps.tonkeeper.usecase.emulation.Emulated
@@ -38,6 +43,7 @@ import com.tonapps.tonkeeper.usecase.emulation.EmulationUseCase
 import com.tonapps.tonkeeper.usecase.sign.SignUseCase
 import com.tonapps.wallet.api.API
 import com.tonapps.wallet.api.SendBlockchainState
+import com.tonapps.wallet.api.SwapAssetParam
 import com.tonapps.wallet.api.entity.SwapEntity
 import com.tonapps.wallet.data.account.AccountRepository
 import com.tonapps.wallet.data.account.entities.MessageBodyEntity
@@ -56,11 +62,13 @@ import com.tonapps.wallet.data.swap.SwapRepository
 import com.tonapps.wallet.data.token.TokenRepository
 import com.tonapps.wallet.data.token.entities.AccountTokenEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -68,7 +76,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -76,6 +89,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.ton.cell.Cell
 import org.ton.contract.wallet.WalletTransfer
+import uikit.UiButtonState
 import uikit.extensions.collectFlow
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicBoolean
@@ -108,6 +122,8 @@ class OmnistonViewModel(
     val swapUri: Uri
         get() = api.config.swapUri
 
+    private var swapStreamJob: Job? = null
+
     private val twinInput = TwinInput(viewModelScope)
 
     private val _requestFocusFlow = MutableEffectFlow<TwinInput.Type?>()
@@ -131,8 +147,19 @@ class OmnistonViewModel(
         .mapList { it.address }
         .map { ratesRepository.getRates(settingsRepository.currency, it) }
 
-    val sendOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Send)
-    val receiveOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Receive)
+    val sendPlaceholderValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Send).map {
+        it.value.asString2()
+    }
+
+    val receivePlaceholderValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Receive).map {
+        it.value.asString2()
+    }
+
+    private val _sendOutputValueFlow = MutableStateFlow(Coins.ZERO)
+    val sendOutputValueFlow = _sendOutputValueFlow.asStateFlow()
+
+    private val _receiveOutputValueFlow = MutableStateFlow(Coins.ZERO)
+    val receiveOutputValueFlow = _receiveOutputValueFlow.asStateFlow()
 
     val sendOutputCurrencyFlow = twinInput.stateFlow.map { it.sendCurrency }.distinctUntilChanged()
     val receiveOutputCurrencyFlow = twinInput.stateFlow.map { it.receiveCurrency }.distinctUntilChanged()
@@ -143,11 +170,22 @@ class OmnistonViewModel(
         val coins = Coins.ONE
         val value = inputsState.convert(
             rates = rates,
+            fromType = TwinInput.Type.Send,
             value = coins
         )
         val formatFrom = CurrencyFormatter.format(inputsState.sendCurrency.code, coins)
         val formatTo = CurrencyFormatter.format(inputsState.receiveCurrency.code, value)
-        "$formatFrom ≈ $formatTo"
+
+        val valueReversed = inputsState.convert(
+            rates = rates,
+            fromType = TwinInput.Type.Receive,
+            value = coins
+        )
+
+        val formatFromReversed = CurrencyFormatter.format(inputsState.receiveCurrency.code, coins)
+        val formatToReversed = CurrencyFormatter.format(inputsState.sendCurrency.code, valueReversed)
+
+        Pair("$formatFrom ≈ $formatTo", "$formatFromReversed ≈ $formatToReversed")
     }
 
     private val tokenBalanceFlow = twinInput.stateFlow
@@ -170,14 +208,19 @@ class OmnistonViewModel(
                 remaining = remaining
             )
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokenState())
 
-    val uiButtonEnabledFlow = combine(
-        uiStateToken.map { it.insufficientBalance }.distinctUntilChanged(),
-        twinInput.stateFlow.map { it.isEmpty }.distinctUntilChanged()
-    ) { insufficientBalance, isEmpty ->
-        !insufficientBalance && !isEmpty
-    }
+    private val _uiButtonStateFlow = MutableStateFlow<UiButtonState>(UiButtonState.Default(false))
+    val uiButtonStateFlow = _uiButtonStateFlow.asStateFlow()
+
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    private val swapRequestFlow = twinInput.stateFlow.map { state ->
+        if (state.focus == TwinInput.Type.Send) {
+            SwapRequest(TwinInput.Type.Send, state.send.coins, state.sendCurrency, state.receiveCurrency)
+        } else {
+            SwapRequest(TwinInput.Type.Receive, state.receive.coins, state.receiveCurrency, state.sendCurrency)
+        }
+    }.distinctUntilChanged()
 
     val jettonSymbolFrom: String
         get() = twinInput.state.getCurrency(TwinInput.Type.Send).symbol + "_ton"
@@ -191,12 +234,71 @@ class OmnistonViewModel(
     val providerUrl: String
         get() = "unknown"
 
-    private var pollingJob: Job? = null
-    private var setSendCurrencyJob: Job? = null
+    private var lastMessages: SwapEntity.Messages? = null
 
     init {
+        applyInputsObserver()
         applyDefaultCurrencies()
         collectFlow(swapRepository.assetsFlow.take(1)) { applyArgs(args, it) }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun applyInputsObserver() {
+        swapRequestFlow.onEach {
+            // setOutputValue(it.type.opposite, Coins.ZERO)
+            cancelSwapStream()
+            if (it.isEmpty) {
+                checkButtonState()
+            } else {
+                setButtonState(UiButtonState.Loading)
+            }
+        }.launch()
+
+        swapRequestFlow.filterNotNull()
+            .debounce(600)
+            .onEach(::startSwapStream)
+            .launch()
+    }
+
+    private fun setMessages(messages: SwapEntity.Messages) {
+        if (messages.isEmpty) {
+            checkButtonState()
+            return
+        }
+
+        lastMessages = messages
+        if (twinInput.state.focus == TwinInput.Type.Send) {
+            val amount = Coins.ofNano(messages.askUnits, twinInput.state.receive.decimals)
+            setOutputValue(TwinInput.Type.Receive, amount)
+        } else if (twinInput.state.focus == TwinInput.Type.Receive) {
+            val amount = Coins.ofNano(messages.bidUnits, twinInput.state.send.decimals)
+            setOutputValue(TwinInput.Type.Send, amount)
+        }
+
+        checkButtonState()
+    }
+
+    private fun checkButtonState() {
+        if (twinInput.state.isEmpty) {
+            setButtonState(UiButtonState.Default(false))
+            return
+        }
+        val insufficientBalance = uiStateToken.value.insufficientBalance
+        setButtonState(UiButtonState.Default(!insufficientBalance))
+    }
+
+    private fun setOutputValue(type: TwinInput.Type, value: Coins) {
+        if (type == TwinInput.Type.Send) {
+            _sendOutputValueFlow.value = value
+            twinInput.updateValue(type, value.value.asString2())
+        } else {
+            _receiveOutputValueFlow.value = value
+            twinInput.updateValue(type, value.value.asString2())
+        }
+    }
+
+    private fun setButtonState(state: UiButtonState) {
+        _uiButtonStateFlow.value = state
     }
 
     fun updateFocusInput(type: TwinInput.Type) {
@@ -208,10 +310,12 @@ class OmnistonViewModel(
     }
 
     fun updateSendInput(amount: String) {
+        _receiveOutputValueFlow.value = Coins.ZERO
         twinInput.updateValue(TwinInput.Type.Send, amount)
     }
 
     fun updateReceiveInput(amount: String) {
+        _sendOutputValueFlow.value = Coins.ZERO
         twinInput.updateValue(TwinInput.Type.Receive, amount)
     }
 
@@ -240,6 +344,7 @@ class OmnistonViewModel(
 
     fun switch() {
         twinInput.switch()
+        setOutputValue(twinInput.state.focus.opposite, Coins.ZERO)
     }
 
     fun pickCurrency(forType: TwinInput.Type) = viewModelScope.launch {
@@ -276,53 +381,78 @@ class OmnistonViewModel(
     }
 
     suspend fun next() = withContext(Dispatchers.IO) {
-        val tonBalance = requestTONToken() ?: throw Exception("TON token not found")
-        val token = tokenBalanceFlow.singleValue()?.token ?: throw Exception("Token not found")
-        val inputState = twinInput.state
-        var fromAmount = inputState.send.coins
-        if (token.isTon) {
-            val requiredForFee = api.config.meanFeeSwap + Coins.of("0.25")
-            if (requiredForFee > token.balance.value) {
+        try {
+            val stateMessages = lastMessages ?: throw Exception("Messages are empty")
+            val tonBalance = requestTONToken() ?: throw Exception("TON token not found")
+            cancelSwapStream()
+            val batteryEnabled = isBatteryIsEnabledTx()
+            val stateToken = uiStateToken.value
+            val fromCurrency = twinInput.state.send.currency
+            val toCurrency = twinInput.state.receive.currency
+            val bidUnits = Coins.ofNano(stateMessages.bidUnits, fromCurrency.decimals)
+            val askUnits = Coins.ofNano(stateMessages.askUnits, toCurrency.decimals)
+            if (bidUnits > stateToken.balance) {
+                throw InsufficientFundsException(
+                    currency = fromCurrency,
+                    required = bidUnits,
+                    available = stateToken.balance,
+                    type = if (stateToken.isTon) InsufficientBalanceType.InsufficientTONBalance else InsufficientBalanceType.InsufficientJettonBalance,
+                    withRechargeBattery = false,
+                    singleWallet = isSingleWallet()
+                )
+            }
+
+            val signRequest = createMessages(stateMessages.messages) ?: throw Exception("Messages are empty")
+            val tx = createEmulationTx(signRequest, batteryEnabled)
+            var preferredFeeMethod = settingsRepository.getPreferredFeeMethod(wallet.id)
+            var canEditFeeMethod = true
+            val gasBudget = Coins.ofNano(stateMessages.gasBudget)
+            val estimatedGasConsumption = Coins.ofNano(stateMessages.estimatedGasConsumption)
+            val totalTonFee = tx.tonEmulated?.totalFees ?: api.config.meanFeeSwap
+            val maxRequiredFee = listOf(gasBudget, estimatedGasConsumption, totalTonFee).max()
+            if (fromCurrency == WalletCurrency.TON && maxRequiredFee > tonBalance.balance.value) {
                 throw InsufficientFundsException(
                     currency = WalletCurrency.TON,
-                    required = requiredForFee,
-                    available = token.balance.value,
+                    required = maxRequiredFee,
+                    available = tonBalance.balance.value,
                     type = InsufficientBalanceType.InsufficientBalanceForFee,
                     withRechargeBattery = false,
                     singleWallet = isSingleWallet()
                 )
+            } else if (fromCurrency != WalletCurrency.TON) {
+                if (tx.batteryEmulated == null && maxRequiredFee > tonBalance.balance.value) {
+                    throw InsufficientFundsException(
+                        currency = WalletCurrency.TON,
+                        required = maxRequiredFee,
+                        available = tonBalance.balance.value,
+                        type = InsufficientBalanceType.InsufficientBalanceForFee,
+                        withRechargeBattery = true,
+                        singleWallet = isSingleWallet()
+                    )
+                } else if (maxRequiredFee > tonBalance.balance.value) {
+                    preferredFeeMethod = PreferredFeeMethod.BATTERY
+                    canEditFeeMethod = false
+                }
             }
 
-            val diff = token.balance.value - fromAmount
-            if (requiredForFee >= diff) {
-                fromAmount -= requiredForFee
-            }
-            if (fromAmount.isNegative) {
-                throw InsufficientFundsException(
-                    currency = WalletCurrency.TON,
-                    required = requiredForFee,
-                    available = token.balance.value,
-                    type = InsufficientBalanceType.InsufficientBalanceWithFee,
-                    withRechargeBattery = false,
-                    singleWallet = isSingleWallet()
-                )
-            }
-        }
-
-        val args = SwapEntity.Args(
-            fromAsset = inputState.send.address.toRawAddress(),
-            toAsset = inputState.receive.address.toRawAddress(),
-            fromAmount = fromAmount.toNano(),
-            userAddress = wallet.address.toRawAddress(),
-            slippage = 1
-        )
-        withContext(Dispatchers.Main) {
-            startPolling(
-                args = args,
-                fromCurrency = inputState.send.currency,
-                toCurrency = inputState.receive.currency,
-                tonBalance = tonBalance
+            _quoteStateFlow.value = SwapQuoteState(
+                toUnits = askUnits,
+                provider = stateMessages.resolverName,
+                fromCurrency = fromCurrency,
+                toCurrency = toCurrency,
+                signRequest = signRequest,
+                fromUnits = bidUnits,
+                gasBudget = gasBudget,
+                estimatedGasConsumption = estimatedGasConsumption,
+                tx = tx,
+                selectedFee = tx.getFeeByMethod(preferredFeeMethod),
+                canEditFeeMethod = canEditFeeMethod,
+                meanFeeSwap = api.config.meanFeeSwap
             )
+
+            _stepFlow.value = OmnistonStep.Review
+        } catch (e: Throwable) {
+            throw e
         }
     }
 
@@ -354,7 +484,6 @@ class OmnistonViewModel(
     }
 
     fun sign(callback: (isSuccessful: Boolean) -> Unit) {
-        stopPolling()
         val state = _quoteStateFlow.value
         val signRequest = state.signRequest ?: return
         viewModelScope.launch(Dispatchers.IO) {
@@ -525,110 +654,23 @@ class OmnistonViewModel(
         )
     }
 
-    private suspend fun fetchMessages(
-        args: SwapEntity.Args,
-        fromCurrency: WalletCurrency,
-        toCurrency: WalletCurrency,
-        batteryEnabled: Boolean,
-        tonBalance: AccountTokenEntity,
-    ): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val messages = api.swapOmnistonBuild(args)
-            val signRequest = createMessages(messages.messages) ?: return@withContext false
-            val tx = createEmulationTx(signRequest, batteryEnabled)
-            var preferredFeeMethod = settingsRepository.getPreferredFeeMethod(wallet.id)
-            var canEditFeeMethod = true
-            val gasBudget = Coins.ofNano(messages.gasBudget)
-            val estimatedGasConsumption = Coins.ofNano(messages.estimatedGasConsumption)
-            val totalTonFee = tx.tonEmulated?.totalFees ?: api.config.meanFeeSwap
-            val maxRequiredFee = listOf(gasBudget, estimatedGasConsumption, totalTonFee).max()
-            var insufficientFunds: InsufficientFundsException? = null
-            if (fromCurrency == WalletCurrency.TON && maxRequiredFee > tonBalance.balance.value) {
-                insufficientFunds = InsufficientFundsException(
-                    currency = WalletCurrency.TON,
-                    required = maxRequiredFee,
-                    available = tonBalance.balance.value,
-                    type = InsufficientBalanceType.InsufficientBalanceWithFee,
-                    withRechargeBattery = false,
-                    singleWallet = isSingleWallet()
-                )
-            } else if (fromCurrency != WalletCurrency.TON) {
-                if (tx.batteryEmulated == null && maxRequiredFee > tonBalance.balance.value) {
-                    insufficientFunds = InsufficientFundsException(
-                        currency = WalletCurrency.TON,
-                        required = maxRequiredFee,
-                        available = tonBalance.balance.value,
-                        type = InsufficientBalanceType.InsufficientBalanceForFee,
-                        withRechargeBattery = true,
-                        singleWallet = isSingleWallet()
-                    )
-                } else if (maxRequiredFee > tonBalance.balance.value) {
-                    preferredFeeMethod = PreferredFeeMethod.BATTERY
-                    canEditFeeMethod = false
-                }
-            }
-
-            _quoteStateFlow.value = SwapQuoteState(
-                toUnits = Coins.ofNano(messages.askUnits, toCurrency.decimals),
-                provider = messages.resolverName,
-                fromCurrency = fromCurrency,
-                toCurrency = toCurrency,
-                signRequest = signRequest,
-                fromUnits = Coins.ofNano(args.fromAmount, fromCurrency.decimals),
-                gasBudget = gasBudget,
-                estimatedGasConsumption = estimatedGasConsumption,
-                tx = tx,
-                selectedFee = tx.getFeeByMethod(preferredFeeMethod),
-                insufficientFunds = insufficientFunds,
-                canEditFeeMethod = canEditFeeMethod,
-                meanFeeSwap = api.config.meanFeeSwap
-            )
-
-            return@withContext true
-        } catch (ignored: Throwable) {
-            lastSeqNo.set(0)
-        }
-        return@withContext false
+    private fun startSwapStream(request: SwapRequest) {
+        cancelSwapStream()
+        swapStreamJob = api.swapStream(
+            from = request.fromParam,
+            to = request.toParam,
+            userAddress = wallet.address.toRawAddress()
+        ).filterNotNull().onEach(::setMessages).launch()
     }
 
-    private fun startPolling(
-        args: SwapEntity.Args,
-        fromCurrency: WalletCurrency,
-        toCurrency: WalletCurrency,
-        tonBalance: AccountTokenEntity,
-    ) {
-        stopPolling()
-
-        pollingJob = viewModelScope.launch(Dispatchers.IO) {
-            val batteryEnabled = isBatteryIsEnabledTx()
-            while (isActive) {
-                if (!fetchMessages(args, fromCurrency, toCurrency, batteryEnabled, tonBalance)) {
-                    delay(1000)
-                    continue
-                }
-                if (isActive && _stepFlow.value == OmnistonStep.Input) {
-                    _stepFlow.value = OmnistonStep.Review
-                }
-                delay(5000)
-            }
-        }
-    }
-
-    private fun stopPolling() {
-        pollingJob?.cancel()
-        pollingJob = null
-
-        setSendCurrencyJob?.cancel()
-        setSendCurrencyJob = null
+    private fun cancelSwapStream() {
+        swapStreamJob?.cancel()
+        swapStreamJob = null
     }
 
     fun reset() {
-        stopPolling()
         _stepFlow.value = OmnistonStep.Input
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        stopPolling()
+        lastMessages?.let(::setMessages)
+        cancelSwapStream()
     }
 }

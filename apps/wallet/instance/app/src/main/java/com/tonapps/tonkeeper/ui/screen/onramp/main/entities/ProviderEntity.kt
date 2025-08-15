@@ -1,6 +1,7 @@
 package com.tonapps.tonkeeper.ui.screen.onramp.main.entities
 
 import android.os.Parcelable
+import com.tonapps.icu.Coins
 import com.tonapps.wallet.api.entity.OnRampMerchantEntity
 import com.tonapps.wallet.data.purchase.entity.PurchaseMethodEntity
 import kotlinx.parcelize.Parcelize
@@ -13,7 +14,8 @@ data class ProviderEntity(
     val iconUrl: String,
     val widgetUrl: String,
     val buttons: List<PurchaseMethodEntity.Button>,
-    val description: String? = null
+    val description: String? = null,
+    val minAmount: Double
 ): Parcelable {
 
     constructor(
@@ -26,6 +28,7 @@ data class ProviderEntity(
         iconUrl = details.iconUrl,
         widgetUrl = widget.widgetUrl,
         buttons = details.infoButtons,
-        description = details.description
+        description = details.description,
+        minAmount = widget.minAmount
     )
 }

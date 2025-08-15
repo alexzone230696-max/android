@@ -8,6 +8,7 @@ import com.tonapps.tonkeeper.ui.screen.onramp.main.state.UiState
 import com.tonapps.tonkeeper.ui.screen.onramp.picker.provider.list.Item
 import com.tonapps.uikit.list.ListCell
 import com.tonapps.wallet.data.account.entities.WalletEntity
+import com.tonapps.wallet.data.core.currency.WalletCurrency
 import com.tonapps.wallet.data.purchase.PurchaseRepository
 import com.tonapps.wallet.data.settings.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,9 @@ class OnRampProviderPickerViewModel(
         val selectedProvider = state.selectedProvider!!
         val list = mutableListOf<Item>()
         for ((index, provider) in state.providers.withIndex()) {
+            val minAmount = Coins.of(provider.minAmount, state.send.decimals)
+            val minAmountFormat = if (provider.minAmount > 0) CurrencyFormatter.format(state.send.code, minAmount, replaceSymbol = false) else ""
+
             val rate = state.calculateRate(provider.receive)
             val rateFormat = CurrencyFormatter.format(state.receive.code, rate, replaceSymbol = false)
             val position = ListCell.getPosition(state.providers.size, index)
@@ -39,7 +43,8 @@ class OnRampProviderPickerViewModel(
                 provider = provider,
                 selected = provider.id.equals(selectedProvider.id, true),
                 rateFormat = "$fromFormat ≈ $rateFormat",
-                best = index == 0 && state.providers.size > 1
+                best = index == 0 && state.providers.size > 1,
+                minAmountFormat = minAmountFormat
             )
             list.add(item)
         }

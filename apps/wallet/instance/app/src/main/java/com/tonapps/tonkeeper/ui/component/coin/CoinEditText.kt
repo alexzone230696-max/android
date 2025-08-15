@@ -279,9 +279,9 @@ class CoinEditText @JvmOverloads constructor(
         }
     }
 
-    private companion object {
+    companion object {
 
-        private fun BigDecimal.asString(): String? {
+        fun BigDecimal.asString(): String? {
             if (BigDecimal.ZERO == this) {
                 return null
             }
@@ -295,6 +295,19 @@ class CoinEditText @JvmOverloads constructor(
                 return null
             }
             return string
+        }
+
+        fun BigDecimal.asString2(
+            customValueScale: Int = 0,
+        ): String {
+            val string = if (customValueScale == 0) asString() else setScale(customValueScale, RoundingMode.HALF_EVEN).asString()
+            if (string.isNullOrBlank() && this != BigDecimal.ZERO) {
+                val newCustomValueScale = CurrencyFormatter.getScale(this)
+                if (newCustomValueScale != customValueScale) {
+                    return asString2(CurrencyFormatter.getScale(this))
+                }
+            }
+            return string ?: ""
         }
 
     }

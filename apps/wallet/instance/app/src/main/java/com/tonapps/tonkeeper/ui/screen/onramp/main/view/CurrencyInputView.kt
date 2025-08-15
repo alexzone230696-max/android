@@ -53,6 +53,7 @@ class CurrencyInputView @JvmOverloads constructor(
     private val tokenBalanceMaxView: View
     private val currencyEmptyView: View
     private val inputContainerView: RowLayout
+    private val placeholderValueView: AppCompatTextView
 
     private var prefix: String? = null
 
@@ -81,6 +82,8 @@ class CurrencyInputView @JvmOverloads constructor(
     val isEmpty: Boolean
         get() = valueView.getValue() == 0.0
 
+    private var placeholderValue: String? = null
+
     init {
         inflate(context, R.layout.view_currency_input, this)
         setBackgroundColor(context.fieldBackgroundColor)
@@ -91,6 +94,7 @@ class CurrencyInputView @JvmOverloads constructor(
         titleView = findViewById(R.id.input_title)
         tokenBalanceView = findViewById(R.id.input_token_balance)
         tokenBalanceMaxView = findViewById(R.id.input_token_max)
+        placeholderValueView = findViewById(R.id.placeholder_value)
 
         inputContainerView = findViewById(R.id.input_container)
 
@@ -101,6 +105,7 @@ class CurrencyInputView @JvmOverloads constructor(
         valueView.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) setActive() else setDefault()
             doOnFocusChange?.invoke(hasFocus)
+            updatePlaceholder()
         }
 
         prefixView = findViewById(R.id.input_prefix)
@@ -126,6 +131,28 @@ class CurrencyInputView @JvmOverloads constructor(
                 valueView.valueScale = valueScale
             }
         }
+    }
+
+    private fun updatePlaceholder() {
+        if (!isEmpty || placeholderValue.isNullOrBlank() || isFocusActive) {
+            placeholderValueView.visibility = GONE
+            valueView.hint = "0"
+        } else if (!isFocusActive) {
+            placeholderValueView.visibility = VISIBLE
+            placeholderValueView.text = EQUALS_SIGN_PREFIX + placeholderValue
+            valueView.hint = ""
+        }
+
+        checkPrefix()
+    }
+
+    fun setPlaceholder(value: String?) {
+        placeholderValue = if (value.isNullOrBlank() || value == "0" || value == "0.0") {
+            null
+        } else {
+            value
+        }
+        updatePlaceholder()
     }
 
     private fun applyGravity(gravity: Int) {
@@ -172,11 +199,11 @@ class CurrencyInputView @JvmOverloads constructor(
 
     fun setPrefix(value: String?) {
         prefix = value
-        checkPrefix()
+        updatePlaceholder()
     }
 
     private fun checkPrefix() {
-        if (prefix.isNullOrBlank() || valueView.getValue() == 0.0 || valueView.isFocused) {
+        if (placeholderValueView.isVisible || prefix.isNullOrBlank() || valueView.getValue() == 0.0 || valueView.isFocused) {
             prefixView.visibility = View.GONE
         } else {
             prefixView.visibility = View.VISIBLE
@@ -198,7 +225,7 @@ class CurrencyInputView @JvmOverloads constructor(
 
     fun setValue(value: BigDecimal, notifyByUser: Boolean = false) {
         valueView.setValue(value, notifyByUser)
-        checkPrefix()
+        updatePlaceholder()
     }
 
     fun setValue(coins: Coins = Coins.ZERO, notifyByUser: Boolean = false) {
@@ -213,7 +240,7 @@ class CurrencyInputView @JvmOverloads constructor(
 
     fun setValue(value: Double) {
         valueView.setValue(value)
-        checkPrefix()
+        updatePlaceholder()
     }
 
     fun setToken(token: TokenEntity) {

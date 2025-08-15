@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONObject
+import java.math.BigDecimal
 import java.util.Locale
 
 internal class InternalApi(
@@ -107,15 +108,6 @@ internal class InternalApi(
         return builder.build().toString()
     }
 
-    fun swapOmnistonBuild(args: SwapEntity.Args): SwapEntity.Messages {
-        val json = Serializer.JSON.encodeToString(args)
-        val response = okHttpClient.postJSON(
-            url = swapEndpoint("v2/swap/omniston/build"),
-            json = json
-        ).body?.string() ?: throw IllegalStateException("Internal API request failed")
-        return Serializer.JSON.decodeFromString(response)
-    }
-
     fun getSwapAssets() = withRetry {
         okHttpClient.get(swapEndpoint("v2/swap/assets"))
     }
@@ -186,10 +178,6 @@ internal class InternalApi(
 
     fun downloadConfig(testnet: Boolean): ConfigEntity? {
         return try {
-            Log.d(
-                "InternalAPI",
-                "downloadConfig, device country: $_deviceCountry, store country: $_storeCountry"
-            )
             val json = request("keys", testnet, locale = context.locale, boot = true)
             ConfigEntity(json, context.isDebug)
         } catch (e: Throwable) {

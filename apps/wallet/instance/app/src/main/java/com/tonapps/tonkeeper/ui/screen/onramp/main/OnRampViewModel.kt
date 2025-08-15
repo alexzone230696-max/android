@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.tonapps.extensions.MutableEffectFlow
+import com.tonapps.extensions.singleValue
 import com.tonapps.icu.Coins
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.tonkeeper.Environment
@@ -27,6 +28,7 @@ import com.tonapps.wallet.data.account.entities.WalletEntity
 import com.tonapps.wallet.data.core.currency.CurrencyCountries
 import com.tonapps.wallet.data.core.currency.WalletCurrency
 import com.tonapps.wallet.data.purchase.PurchaseRepository
+import com.tonapps.wallet.data.purchase.entity.OnRamp
 import com.tonapps.wallet.data.rates.RatesRepository
 import com.tonapps.wallet.data.settings.SettingsRepository
 import com.tonapps.wallet.localization.Localization
@@ -42,6 +44,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import uikit.UiButtonState
@@ -64,6 +70,12 @@ class OnRampViewModel(
 
     private val settings = OnRampSettings(app)
 
+    private val _sendValueFlow = MutableEffectFlow<Coins>()
+    val sendValueFlow = _sendValueFlow.asSharedFlow().filterNotNull()
+
+    private val _openWidgetFlow = MutableEffectFlow<ProviderEntity>()
+    val openWidgetFlow = _openWidgetFlow.asSharedFlow().filterNotNull()
+
     private val _requestFocusFlow = MutableEffectFlow<TwinInput.Type?>()
     val requestFocusFlow = _requestFocusFlow.asSharedFlow().filterNotNull()
 
@@ -73,7 +85,7 @@ class OnRampViewModel(
     private val _selectedProviderIdFlow = MutableStateFlow<String?>(null)
     private val selectedProviderIdFlow = _selectedProviderIdFlow.asStateFlow()
 
-    private val _availableProvidersFlow = MutableStateFlow<List<OnRampMerchantEntity>>(emptyList())
+    private val _availableProvidersFlow = MutableStateFlow<OnRampMerchantEntity.Data>(OnRampMerchantEntity.Data())
     private val availableProvidersFlow = _availableProvidersFlow.asStateFlow().filterNotNull()
 
     private val _selectedPaymentMethodFlow = MutableStateFlow(settings.getPaymentMethod())
@@ -88,6 +100,11 @@ class OnRampViewModel(
 
     private val paymentMethodsFlow = paymentMerchantsFlow.map { merchants ->
         merchants.map { it.methods }.flatten().distinctBy { it.type }.filter { it.type != "apple_pay" }
+    }.map { methods ->
+        methods.ifEmpty {
+            // If Zakhar breaks again
+            listOf(OnRamp.Method("https://tonkeeper.com/assets/onramp/payment_methods/card.png", "card"))
+        }
     }
 
     private val merchantsFlow = environment.countryFlow.map {
@@ -103,7 +120,7 @@ class OnRampViewModel(
             list.associateBy { it.id }
         }
     ) { availableProviders, merchants ->
-        availableProviders.mapNotNull { widget ->
+        (availableProviders.items + availableProviders.suggested).mapNotNull { widget ->
             merchants[widget.merchant]?.let { ProviderEntity(widget, it) }
         }
     }.flowOn(Dispatchers.IO)
@@ -137,7 +154,7 @@ class OnRampViewModel(
         if (!coins.isPositive) {
             return@combine null
         }
-        if (sendValue.coins > coins || sendValue.coins.isZero) {
+        if (sendValue.coins >= coins || sendValue.coins.isZero) {
             return@combine null
         }
         val formatted = CurrencyFormatter.format(sendValue.symbol, coins, replaceSymbol = false)
@@ -164,8 +181,9 @@ class OnRampViewModel(
         UiState.RateFormatted(firstLine, secondLine)
     }.distinctUntilChanged()
 
-    val sendOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Send)
-    val receiveOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Receive)
+    private val reductionFactor = 1.03f
+    val sendOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Send, reductionFactor)
+    val receiveOutputValueFlow = twinInput.createConvertFlow(ratesFlow, TwinInput.Type.Receive, reductionFactor)
 
     val balanceUiStateFlow = twinInput.stateFlow.map { it.send }.distinctUntilChanged().map { sendInput ->
         val token = if (sendInput.currency.fiat) null else assetsManager.getToken(wallet, sendInput.currency.address)
@@ -213,23 +231,30 @@ class OnRampViewModel(
         selectedPaymentMethodFlow,
         paymentMethodsFlow,
         environment.countryFlow,
-    ) { selectedType, methods, country ->
-        OnRampPaymentMethodState(
-            selectedType = selectedType,
-            methods = methods.map {
-                OnRampPaymentMethodState.createMethod(context, it, country)
-            }.sortedBy { method ->
-                val index = OnRampPaymentMethodState.sortKeys.indexOf(method.type)
-                if (index == -1) Int.MAX_VALUE else index
-            }
-        )
-    }
+        twinInput.stateFlow.map { it.receiveCurrency }.filterNotNull()
+    ) { selectedType, methods, country, receiveCurrency ->
+        if (receiveCurrency.fiat) {
+            OnRampPaymentMethodState(
+                selectedType = selectedType,
+                methods = emptyList()
+            )
+        } else {
+            OnRampPaymentMethodState(
+                selectedType = selectedType,
+                methods = methods.map {
+                    OnRampPaymentMethodState.createMethod(context, it, country)
+                }.sortedBy { method ->
+                    val index = OnRampPaymentMethodState.sortKeys.indexOf(method.type)
+                    if (index == -1) Int.MAX_VALUE else index
+                }
+            )
+        }
+    }.distinctUntilChanged()
 
     val purchaseType: String
         get() = if (twinInput.state.sendCurrency.fiat) "buy" else "sell"
 
-    val network: String
-        get() = OnRampUtils.resolveNetwork(twinInput.state.sendCurrency)
+    var network: String = "native"
 
     val from: String
         get() = OnRampUtils.fixSymbol(twinInput.state.sendCurrency.symbol)
@@ -256,6 +281,9 @@ class OnRampViewModel(
 
     init {
         applyDefaultCurrencies()
+        applyNetworkObserver()
+        applyOverValueObserver()
+        applyDefaultAmountObserver()
         startObserveInputButtonEnabled()
 
         combine(
@@ -268,6 +296,68 @@ class OnRampViewModel(
             } else {
                 setSelectedPaymentMethod(methods.first().type)
             }
+        }.launch()
+    }
+
+    private fun applyOverValueObserver() {
+        combine(
+            providersFlow.filter { it.isNotEmpty() }.distinctUntilChanged(),
+            selectedProviderIdFlow.filterNotNull().distinctUntilChanged()
+        ) { providers, selectedProviderId ->
+            providers.find { it.id == selectedProviderId }
+        }.filter { provider ->
+            provider != null && provider.minAmount > 0
+        }.filterNotNull().onEach { provider ->
+            val minValue = Coins.of(provider.minAmount, twinInput.state.send.decimals)
+            if (twinInput.state.send.fiat && minValue > twinInput.state.send.coins) {
+                forceProvider(provider.id, minValue)
+            } else if (!twinInput.state.send.fiat) {
+                val balance = balanceUiStateFlow.singleValue()?.balance?.value
+                if (balance != null && minValue > balance) {
+                    toast(Localization.insufficient_balance_title)
+                } else {
+                    forceProvider(provider.id, minValue)
+                }
+            }
+        }.launch()
+    }
+
+    private fun forceProvider(id: String, value: Coins) {
+        forceSendValue(value)
+        setSelectedProviderId(id)
+        requestAvailableProviders()
+    }
+
+    private fun applyDefaultAmountObserver() {
+        combine(
+            allowedPairFlow.map {
+                com.tonapps.wallet.data.purchase.OnRampUtils.smartRoundUp(it?.min ?: 0.0)
+            }.distinctUntilChanged(),
+            balanceUiStateFlow.map { it.balance?.value },
+        ) { minAmount, tokenBalance ->
+            val min = Coins.of(minAmount, twinInput.state.send.decimals)
+            val currentValue = twinInput.state.send.coins
+            if (twinInput.state.send.currency.fiat && (currentValue.isZero || min > currentValue)) {
+                min
+            } else if (tokenBalance != null && tokenBalance >= min) {
+                min
+            } else {
+                null
+            }
+        }.filterNotNull().distinctUntilChanged().onEach(::forceSendValue).launch()
+    }
+
+    private fun forceSendValue(coins: Coins) {
+        twinInput.updateValue(TwinInput.Type.Send, Coins.string(coins))
+        _sendValueFlow.tryEmit(coins)
+    }
+
+    private fun applyNetworkObserver() {
+        combine(
+            twinInput.stateFlow,
+            onRampDataFlow.map { it.data }
+        ) { state, data ->
+            network = data.resolveNetwork(true, state.sendCurrency) ?: data.resolveNetwork(false, state.receiveCurrency) ?: "native"
         }.launch()
     }
 
@@ -424,12 +514,28 @@ class OnRampViewModel(
         cancelObserveInputButtonEnabled()
         setLoading(true)
 
-        requestAvailableProvidersJob = viewModelScope.launch {
+        requestAvailableProvidersJob = collectFlow(
+            paymentMethodsFlow.take(1)
+        ) { paymentMethods ->
             try {
+                if (paymentMethods.isEmpty()) {
+                    throw IOException("No payment methods available")
+                }
                 val args = requestWebViewLinkArg(selectedPaymentMethod)
                 val availableProviders = api.calculateOnRamp(args)
-                if (availableProviders.isEmpty()) {
+                if (availableProviders.isEmpty) {
                     throw IOException("No providers available for the selected payment method")
+                } else if (paymentMethods.size == 1 && availableProviders.size == 1) {
+                    val provider = availableProviders.items.first()
+                    val method = purchaseRepository.getMethod(
+                        id = provider.merchant,
+                        testnet = wallet.testnet,
+                        locale = settingsRepository.getLocale()
+                    ) ?: throw IOException("No method details found for provider: ${provider.merchant}")
+                    _openWidgetFlow.tryEmit(ProviderEntity(
+                        widget = provider,
+                        details = method
+                    ))
                 } else {
                     _availableProvidersFlow.value = availableProviders
                     _stepFlow.value = UiState.Step.Confirm
