@@ -698,7 +698,6 @@
     <string name="ethena_operated_by">Operated by %1$s</string>
     <string name="deposit_and_stake">Deposit &amp; Stake</string>
     <string name="ethena" translatable="false">Ethena</string>
-    <string name="ethena_apy">One-week avg. APY ≈ %1$s</string>
     <string name="ethena_check_eligibility">Check Eligibility</string>
     <string name="about_ethena">About Ethena</string>
 </resources>

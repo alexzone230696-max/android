@@ -235,14 +235,14 @@ class TokenViewModel(
                     fiatRate = CurrencyFormatter.format(currency, token.rateNow),
                     rateDiff24h = rates.getDiff7d(token.address),
                     verified = token.token.verification == TokenEntity.Verification.whitelist,
-                    hiddenBalance = settingsRepository.hiddenBalances
+                    hiddenBalance = settingsRepository.hiddenBalances,
                 )
             )
 
             val stonfiMethod =
                 ethena?.methods?.firstOrNull { it.type == EthenaEntity.Method.Type.STONFI }
 
-            if (stonfiMethod != null) {
+            if (stonfiMethod != null && ethena != null) {
                 balanceItems.add(
                     Item.EthenaBalance(
                         position = ListCell.Position.SINGLE,
@@ -250,7 +250,8 @@ class TokenViewModel(
                         staked = true,
                         methodType = stonfiMethod.type,
                         showApy = !usdeDisabled,
-                        apy = CurrencyFormatter.formatPercent(stonfiMethod.apy),
+                        title = ethena.about.stakeTitle,
+                        apyText = ethena.about.stakeDescription,
                         balance = stonfiBalance,
                         balanceFormat = CurrencyFormatter.format(
                             value = stonfiBalance,
