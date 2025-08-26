@@ -1,10 +1,8 @@
 package com.tonapps.tonkeeper.ui.component.coin
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.text.TextPaint
 import android.util.AttributeSet
-import android.util.Log
 import android.util.TypedValue
 import androidx.appcompat.R
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -16,13 +14,10 @@ import com.tonapps.tonkeeper.ui.component.coin.drawable.SuffixDrawable
 import com.tonapps.tonkeeper.ui.component.coin.format.CoinFormattingConfig
 import com.tonapps.tonkeeper.ui.component.coin.format.CoinFormattingFilter
 import com.tonapps.tonkeeper.ui.component.coin.format.CoinFormattingTextWatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import uikit.extensions.dp
@@ -213,6 +208,21 @@ class CoinEditText @JvmOverloads constructor(
         } else if (string != text?.toString()) {
             text?.clear()
             text?.insert(0, string)
+        }
+        if (notifyByUser) {
+            notifyUpdateDelay(true)
+        }
+    }
+
+    fun setValue(
+        value: String?,
+        notifyByUser: Boolean = false,
+    ) {
+        if (value.isNullOrBlank()) {
+            clear()
+        } else if (value != text?.toString()) {
+            text?.clear()
+            text?.insert(0, value)
         }
         if (notifyByUser) {
             notifyUpdateDelay(true)

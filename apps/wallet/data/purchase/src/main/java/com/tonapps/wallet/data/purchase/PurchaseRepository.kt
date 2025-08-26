@@ -10,6 +10,7 @@ import com.tonapps.extensions.toParcel
 import com.tonapps.wallet.api.API
 import com.tonapps.wallet.data.core.BlobDataSource
 import com.tonapps.wallet.data.core.currency.WalletCurrency
+import com.tonapps.wallet.data.purchase.entity.MerchantEntity
 import com.tonapps.wallet.data.purchase.entity.OnRamp
 import com.tonapps.wallet.data.purchase.entity.PurchaseCategoryEntity
 import com.tonapps.wallet.data.purchase.entity.PurchaseDataEntity
@@ -38,9 +39,30 @@ class PurchaseRepository(
 
     private val onRampCache = simple<OnRamp.Data>(context, "onRamp", TimeUnit.DAYS.toMillis(1))
     private val paymentMethodCache = simpleJSON<List<OnRamp.PaymentMethodMerchant>>(context,"payment_methods", TimeUnit.DAYS.toMillis(1))
+    private val merchantsCache = simpleJSON<List<MerchantEntity>>(context,"merchants", TimeUnit.DAYS.toMillis(1))
 
     suspend fun getOnRamp(): OnRamp.Data? = withContext(Dispatchers.IO) {
         getOnRampData()
+    }
+
+    private fun loadOnRampMerchants(): List<MerchantEntity> {
+        return try {
+            val data = api.getOnRampMerchants() ?: throw Exception("No merchants found")
+            Log.d("PurchaseRepositoryLog", "data: $data")
+            Serializer.JSON.decodeFromString<List<MerchantEntity>>(data)
+        } catch (e: Throwable) {
+            Log.e("PurchaseRepositoryLog", "loadOnRampMerchants", e)
+            emptyList()
+        }
+    }
+
+    fun getMerchants(): List<MerchantEntity> {
+        var list = merchantsCache.getCache("main") ?: emptyList()
+        if (list.isEmpty()) {
+            list = loadOnRampMerchants()
+            merchantsCache.setCache("main", list)
+        }
+        return list
     }
 
     private fun loadOnRampPaymentMethods(): List<OnRamp.PaymentMethodMerchant> {

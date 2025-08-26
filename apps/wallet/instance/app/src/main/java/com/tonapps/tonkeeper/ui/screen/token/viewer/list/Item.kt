@@ -3,6 +3,7 @@ package com.tonapps.tonkeeper.ui.screen.token.viewer.list
 import android.net.Uri
 import com.tonapps.icu.Coins
 import com.tonapps.tonkeeper.core.entities.WalletPurchaseMethodEntity
+import com.tonapps.tonkeeper.extensions.asCurrency
 import com.tonapps.tonkeeperx.R
 import com.tonapps.uikit.list.BaseListItem
 import com.tonapps.uikit.list.ListCell
@@ -60,6 +61,9 @@ sealed class Item(type: Int): BaseListItem(type) {
 
         val walletType: Wallet.Type
             get() = wallet.type
+
+        val currency: WalletCurrency
+            get() = token.asCurrency
 
         val send: Boolean
             get() = !wallet.isWatchOnly && token.isTransferable

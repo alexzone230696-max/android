@@ -1,6 +1,7 @@
 package com.tonapps.tonkeeper.ui.screen.onramp.main.view
 
 import android.content.Context
+import android.graphics.Color
 import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
@@ -28,8 +29,6 @@ import uikit.widget.ColumnLayout
 import java.math.BigDecimal
 import androidx.core.view.isVisible
 import com.tonapps.uikit.color.fieldBackgroundColor
-import uikit.extensions.reject
-import uikit.extensions.startSnakeAnimation
 import uikit.extensions.viewMoveTo
 import uikit.widget.RowLayout
 
@@ -89,12 +88,15 @@ class CurrencyInputView @JvmOverloads constructor(
         setBackgroundColor(context.fieldBackgroundColor)
         setPadding(offsetMedium)
         setDefault()
-        setOnClickListener { focusWithKeyboard() }
+        setOnClickListener {
+            focusWithKeyboard()
+        }
 
         titleView = findViewById(R.id.input_title)
         tokenBalanceView = findViewById(R.id.input_token_balance)
         tokenBalanceMaxView = findViewById(R.id.input_token_max)
         placeholderValueView = findViewById(R.id.placeholder_value)
+        placeholderValueView.setBackgroundColor(Color.TRANSPARENT)
 
         inputContainerView = findViewById(R.id.input_container)
 
@@ -106,6 +108,7 @@ class CurrencyInputView @JvmOverloads constructor(
             if (hasFocus) setActive() else setDefault()
             doOnFocusChange?.invoke(hasFocus)
             updatePlaceholder()
+            checkPlaceholderValue()
         }
 
         prefixView = findViewById(R.id.input_prefix)
@@ -144,6 +147,12 @@ class CurrencyInputView @JvmOverloads constructor(
         }
 
         checkPrefix()
+    }
+
+    private fun checkPlaceholderValue() {
+        if (isEmpty) {
+            valueView.setValue(placeholderValue)
+        }
     }
 
     fun setPlaceholder(value: String?) {

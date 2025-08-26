@@ -1,15 +1,13 @@
 package com.tonapps.wallet.api.internal
 
-import android.util.Log
 import androidx.core.net.toUri
-import com.tonapps.network.SSEvent
 import com.tonapps.network.get
 import com.tonapps.network.sse
 import com.tonapps.wallet.api.SwapAssetParam
 import com.tonapps.wallet.api.entity.SwapEntity
 import com.tonapps.wallet.api.withRetry
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 
@@ -22,6 +20,9 @@ internal class SwapApi(
     }
 
     fun stream(from: SwapAssetParam, to: SwapAssetParam, userAddress: String): Flow<SwapEntity.Messages?> {
+        if (from.isEmpty && to.isEmpty) {
+            return emptyFlow()
+        }
         val builder = "https://swap.tonkeeper.com/v2/swap/omniston/stream".toUri().buildUpon()
         from.apply("from", builder)
         to.apply("to", builder)

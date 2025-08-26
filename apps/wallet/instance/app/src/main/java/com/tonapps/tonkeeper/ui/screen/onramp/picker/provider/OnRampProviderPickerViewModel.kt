@@ -34,8 +34,7 @@ class OnRampProviderPickerViewModel(
         for ((index, provider) in state.providers.withIndex()) {
             val minAmount = Coins.of(provider.minAmount, state.send.decimals)
             val minAmountFormat = if (provider.minAmount > 0) CurrencyFormatter.format(state.send.code, minAmount, replaceSymbol = false) else ""
-
-            val rate = state.calculateRate(provider.receive)
+            val rate =  if (provider.minAmount > 0) Coins.of(provider.receive / provider.minAmount, state.receive.decimals) else state.calculateRate(provider.receive)
             val rateFormat = CurrencyFormatter.format(state.receive.code, rate, replaceSymbol = false)
             val position = ListCell.getPosition(state.providers.size, index)
             val item = Item(

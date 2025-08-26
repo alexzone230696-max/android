@@ -17,12 +17,12 @@ data class SwapRequest(
 
 
     val fromParam: SwapAssetParam by lazy {
-        val amount = if (type == TwinInput.Type.Send) amount.toNano() else null
+        val amount = if (type == TwinInput.Type.Send) amount.toNano(from.decimals) else null
         SwapAssetParam(from.address, amount)
     }
 
     val toParam: SwapAssetParam by lazy {
-        val amount = if (type == TwinInput.Type.Receive) amount.toNano() else null
+        val amount = if (type == TwinInput.Type.Receive) amount.toNano(to.decimals) else null
         SwapAssetParam(to.address, amount)
     }
 }

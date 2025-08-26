@@ -269,11 +269,7 @@ data class Coins(
         return multipliedValue.toDouble()
     }
 
-    fun toNano(): String {
-        val multiplier = BigDecimal.TEN.pow(decimals)
-        val multipliedValue = value.multiply(multiplier)
-        return multipliedValue.toBigInteger().toString()
-    }
+    fun toNano(decimals: Int) = value.movePointRight(decimals).setScale(0, RoundingMode.DOWN).toPlainString()
 
     fun diff(coins: Coins): Float {
         if (coins.isZero || isZero) {

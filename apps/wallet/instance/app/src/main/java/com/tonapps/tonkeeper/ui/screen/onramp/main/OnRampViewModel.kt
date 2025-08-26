@@ -28,6 +28,7 @@ import com.tonapps.wallet.data.account.entities.WalletEntity
 import com.tonapps.wallet.data.core.currency.CurrencyCountries
 import com.tonapps.wallet.data.core.currency.WalletCurrency
 import com.tonapps.wallet.data.purchase.PurchaseRepository
+import com.tonapps.wallet.data.purchase.entity.MerchantEntity
 import com.tonapps.wallet.data.purchase.entity.OnRamp
 import com.tonapps.wallet.data.rates.RatesRepository
 import com.tonapps.wallet.data.settings.SettingsRepository
@@ -42,6 +43,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -85,7 +88,7 @@ class OnRampViewModel(
     private val _selectedProviderIdFlow = MutableStateFlow<String?>(null)
     private val selectedProviderIdFlow = _selectedProviderIdFlow.asStateFlow()
 
-    private val _availableProvidersFlow = MutableStateFlow<OnRampMerchantEntity.Data>(OnRampMerchantEntity.Data())
+    private val _availableProvidersFlow = MutableStateFlow(OnRampMerchantEntity.Data())
     private val availableProvidersFlow = _availableProvidersFlow.asStateFlow().filterNotNull()
 
     private val _selectedPaymentMethodFlow = MutableStateFlow(settings.getPaymentMethod())
@@ -107,8 +110,8 @@ class OnRampViewModel(
         }
     }
 
-    private val merchantsFlow = environment.countryFlow.map {
-        purchaseRepository.getProvidersByCountry(wallet, settingsRepository, it)
+    private val merchantsFlow = flow {
+        emit(purchaseRepository.getMerchants())
     }
 
     val country: String
@@ -527,11 +530,8 @@ class OnRampViewModel(
                     throw IOException("No providers available for the selected payment method")
                 } else if (paymentMethods.size == 1 && availableProviders.size == 1) {
                     val provider = availableProviders.items.first()
-                    val method = purchaseRepository.getMethod(
-                        id = provider.merchant,
-                        testnet = wallet.testnet,
-                        locale = settingsRepository.getLocale()
-                    ) ?: throw IOException("No method details found for provider: ${provider.merchant}")
+                    val merchants = purchaseRepository.getMerchants()
+                    val method = merchants.find { it.id == provider.merchant } ?: throw IOException("No merchant found for provider: ${provider.merchant}")
                     _openWidgetFlow.tryEmit(ProviderEntity(
                         widget = provider,
                         details = method

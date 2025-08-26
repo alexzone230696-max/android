@@ -57,6 +57,11 @@ internal class ConfigRepository(
         config
     }
 
+    suspend fun refresh(testnet: Boolean) {
+        val config = remote(testnet) ?: return
+        setConfig(config)
+    }
+
     suspend fun initConfig() {
         remote(false)?.let {
             setConfig(it)

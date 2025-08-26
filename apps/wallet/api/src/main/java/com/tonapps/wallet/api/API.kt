@@ -193,6 +193,8 @@ class API(
 
     fun getOnRampPaymentMethods() = internalApi.getOnRampPaymentMethods()
 
+    fun getOnRampMerchants() = internalApi.getOnRampMerchants()
+
     fun getSwapAssets(): JSONArray = runCatching {
         swapApi.getSwapAssets()?.let(::JSONArray)
     }.getOrNull() ?: JSONArray()
@@ -251,6 +253,10 @@ class API(
         val endpoint = if (testnet) config.tonapiSSETestnetEndpoint else config.tonapiSSEEndpoint
         val url = "$endpoint/sse/traces?account=$accountId&token=${config.tonApiV2Key}"
         return seeHttpClient.sse(url, onFailure = onFailure)
+    }
+
+    suspend fun refreshConfig(testnet: Boolean) {
+        configRepository.refresh(testnet)
     }
 
     fun swapStream(from: SwapAssetParam, to: SwapAssetParam, userAddress: String) = swapApi.stream(from, to, userAddress)

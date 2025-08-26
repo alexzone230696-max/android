@@ -31,6 +31,9 @@ import uikit.widget.webview.bridge.BridgeWebView
 import androidx.core.view.isGone
 import com.google.firebase.Firebase
 import com.google.firebase.perf.performance
+import com.tonapps.blockchain.ton.extensions.equalsAddress
+import com.tonapps.wallet.data.core.currency.WalletCurrency
+import org.ton.contract.wallet.WalletMessage
 
 class SwapScreen(wallet: WalletEntity): WalletContextScreen(R.layout.fragment_swap, wallet), BaseFragment.BottomSheet {
 
@@ -147,26 +150,35 @@ class SwapScreen(wallet: WalletEntity): WalletContextScreen(R.layout.fragment_sw
 
     companion object {
 
+        fun bestToToken(fromToken: String): WalletCurrency {
+            if (fromToken.equalsAddress(WalletCurrency.USDE_TON_ETHENA_ADDRESS)) {
+                return WalletCurrency.USDT_TON
+            } else if (fromToken.equalsAddress(WalletCurrency.TS_USDE_TON_ETHENA_ADDRESS)) {
+                return WalletCurrency.USDE_TON_ETHENA
+            }
+            return WalletCurrency.TON
+        }
+
         fun newInstance(
             wallet: WalletEntity,
-            fromToken: String = "TON",
-            toToken: String = TokenEntity.TON_USDT,
+            fromToken: WalletCurrency = WalletCurrency.TON,
+            toToken: WalletCurrency? = null,
             nativeSwap: Boolean,
             uri: Uri,
         ): BaseFragment {
-            if (true) { // nativeSwap
+            if (nativeSwap) {
                 return OmnistonScreen.newInstance(
                     wallet = wallet,
                     fromToken = fromToken,
-                    toToken = toToken
+                    toToken = toToken ?: bestToToken(fromToken.address)
                 )
             }
             val screen = SwapScreen(wallet)
             screen.setArgs(SwapArgs(
                 uri = uri,
                 address = wallet.address,
-                fromToken = fromToken,
-                toToken = toToken
+                fromToken = fromToken.address,
+                toToken = (toToken ?: bestToToken(fromToken.address)).address
             ))
             return screen
         }

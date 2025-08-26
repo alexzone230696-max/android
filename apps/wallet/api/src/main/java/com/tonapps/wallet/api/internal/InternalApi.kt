@@ -120,6 +120,10 @@ internal class InternalApi(
         okHttpClient.get(swapEndpoint("v2/onramp/payment_methods"))
     }
 
+    fun getOnRampMerchants() = withRetry {
+        okHttpClient.get(swapEndpoint("v2/onramp/merchants"))
+    }
+
     fun calculateOnRamp(args: OnRampArgsEntity): String? {
         val json = args.toJSON()
         _deviceCountry?.let { json.put("country", _deviceCountry) }

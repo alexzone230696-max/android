@@ -1,5 +1,6 @@
 package com.tonapps.tonkeeper.helper
 
+import android.util.Log
 import com.tonapps.icu.Coins
 import com.tonapps.wallet.data.core.currency.WalletCurrency
 import com.tonapps.wallet.data.rates.entity.RatesEntity
@@ -209,10 +210,14 @@ class TwinInput(
 
     fun updateValue(type: Type, value: String) {
         _stateFlow.update {
+            var normalizedValue = value.trim()
+            if (normalizedValue == "0") {
+                normalizedValue = ""
+            }
             if (type == Type.Send) {
-                it.copy(send = it.send.copy(value = value.trim()))
+                it.copy(send = it.send.copy(value = normalizedValue))
             } else {
-                it.copy(receive = it.receive.copy(value = value.trim()))
+                it.copy(receive = it.receive.copy(value = normalizedValue))
             }
         }
     }
