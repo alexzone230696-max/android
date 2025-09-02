@@ -112,6 +112,11 @@ class TonConnectScreen: BaseWalletScreen<ScreenContext.None>(R.layout.fragment_t
         pushView.setOnClickListener {
             pushCheckBoxView.toggle()
         }
+        pushView.visibility = if (viewModel.pushAvailable) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
 
         warningView.applyNavBottomPadding(requireContext().getDimensionPixelSize(uikit.R.dimen.offsetMedium))
 
