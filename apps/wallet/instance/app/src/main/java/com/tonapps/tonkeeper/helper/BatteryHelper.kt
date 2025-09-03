@@ -70,11 +70,10 @@ object BatteryHelper {
         accountRepository: AccountRepository,
         batteryRepository: BatteryRepository
     ): Boolean = withContext(Dispatchers.IO) {
-        if (settingsRepository.batteryIsEnabledTx(wallet.accountId, txType)) {
-            getBalance(wallet, accountRepository, batteryRepository).isPositive
-        } else {
-            false
+        if (!settingsRepository.batteryIsEnabledTx(wallet.accountId, txType)) {
+            return@withContext false
         }
+        getBalance(wallet, accountRepository, batteryRepository).isPositive
     }
 
 }
