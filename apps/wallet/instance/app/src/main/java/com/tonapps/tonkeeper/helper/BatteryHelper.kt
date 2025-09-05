@@ -56,9 +56,10 @@ object BatteryHelper {
             params = true
         )
         val chargesBalance = getBatteryCharges(wallet, accountRepository, batteryRepository)
+        val batteryConfig = batteryRepository.getConfig(wallet.testnet)
         val charges = BatteryMapper.calculateChargesAmount(
             emulated.extra.value.value,
-            api.config.batteryMeanFees
+            batteryConfig.chargeCost
         )
         return if (charges > chargesBalance) null else emulated
     }
