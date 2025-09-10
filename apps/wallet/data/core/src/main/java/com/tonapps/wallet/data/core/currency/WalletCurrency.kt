@@ -107,6 +107,7 @@ data class WalletCurrency(
             "KRW", // South Korean Won
             "IDR", // Indonesian Rupiah
             "INR", // Indian Rupee
+            "PKR", // Pakistani Rupee
             "JPY", // Japanese Yen
             "CAD", // Canadian Dollar
             "ARS", // Argentine Peso

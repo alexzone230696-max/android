@@ -209,7 +209,8 @@ class AsyncImageView @JvmOverloads constructor(
         }
         if (roundAsCircle) {
             transformations.add(CircleCropTransformation())
-        } else if (!roundedCornerRadius.isEmpty) {
+        }
+        if (!roundedCornerRadius.isEmpty) {
             transformations.add(RoundedCornersTransformation(
                 topLeft = roundedCornerRadius.topLeft,
                 topRight = roundedCornerRadius.topRight,
