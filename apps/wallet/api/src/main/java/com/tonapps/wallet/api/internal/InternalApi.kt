@@ -53,10 +53,10 @@ internal class InternalApi(
         queryParams: Map<String, String> = emptyMap(),
         bootFallback: Boolean = false,
     ): String = runBlocking {
-        val builder = if (boot) {
-            "https://boot.tonkeeper.com".toUri().buildUpon()
-        } else if (bootFallback) {
+        val builder = if (bootFallback) {
             "https://block.tonkeeper.com".toUri().buildUpon()
+        } else if (boot) {
+            "https://boot.tonkeeper.com".toUri().buildUpon()
         } else {
             _apiEndpoint.buildUpon()
         }

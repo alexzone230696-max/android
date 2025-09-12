@@ -116,8 +116,9 @@
     <string name="staking_unstake_cycle">Unstake request will be processed after the end of the validation cycle in %1$s</string>
 
     <string name="send_transaction_scroll">Check all details to confirm</string>
-    <string name="send_transaction_detail">The total value of tokens that will be sent from your wallet. Refunds are not included in the total value.</string>
-    <string name="send_transaction_detail_nft">The total value of tokens, excluding the cost of NFTs, that will be sent from your wallet. Refunds are not included in the total value.</string>
+    <string name="send_transaction_detail">The total value of tokens you’re sending.</string>
+    <string name="send_transaction_detail_nft">The total value of tokens you’re sending. NFT will also be sent.</string>
+    <string name="send_transaction_detail_nfts">The total value of tokens you’re sending. NFTs will also be sent.</string>
     <string name="keystone_sign_step1">Scan the QR code with Keystone</string>
     <string name="keystone_sign_step2">Confirm your transaction in Keystone</string>
     <string name="keystone_sign_step3">Scan signed transaction QR code from Keystone</string>

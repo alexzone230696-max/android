@@ -285,7 +285,7 @@ class TokenViewModel(
             Item.Actions(
                 swapUri = api.config.swapUri,
                 swapMethod = if (token.isTrc20) getSwapMethod() else null,
-                swapEnabled = !api.config.flags.disableSwap || (token.isUSDe && !usdeDisabled),
+                swapDisabled = api.config.flags.disableSwap || (token.isUSDe && usdeDisabled),
                 token = token.balance.token,
                 wallet = wallet,
             )

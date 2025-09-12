@@ -49,7 +49,7 @@ sealed class Item(type: Int): BaseListItem(type) {
         val wallet: WalletEntity,
         val swapUri: Uri,
         val swapMethod: WalletPurchaseMethodEntity?,
-        val swapEnabled: Boolean,
+        val swapDisabled: Boolean,
         val token: TokenEntity,
     ): Item(TYPE_ACTIONS) {
 
@@ -70,9 +70,9 @@ sealed class Item(type: Int): BaseListItem(type) {
 
         val swap: Boolean
             get() = if (token.isTrc20) {
-                swapEnabled && wallet.hasPrivateKey && swapMethod != null
+                !swapDisabled && wallet.hasPrivateKey && swapMethod != null
             } else {
-                swapEnabled && token.verified && !wallet.isWatchOnly
+                !swapDisabled && token.verified && !wallet.isWatchOnly
             }
 
         val maxColumnCount: Int
