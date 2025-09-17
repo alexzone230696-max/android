@@ -56,6 +56,8 @@ data class ConfigEntity(
     val qrScannerExtends: List<QRScannerExtendsEntity>,
     val region: String,
     val tonkeeperApiUrl: String,
+    val tronSwapUrl: String,
+    val tronSwapTitle: String
 ): Parcelable {
 
     @IgnoredOnParcel
@@ -128,7 +130,9 @@ data class ConfigEntity(
             QRScannerExtendsEntity.of(array)
         } ?: emptyList(),
         region = json.getString("region"),
-        tonkeeperApiUrl = json.optString("tonkeeper_api_url", "https://api.tonkeeper.com")
+        tonkeeperApiUrl = json.optString("tonkeeper_api_url", "https://api.tonkeeper.com"),
+        tronSwapUrl = json.optString("tron_swap_url", "https://widget.letsexchange.io/en?affiliate_id=ffzymmunvvyxyypo&coin_from=ton&coin_to=USDT-TRC20&is_iframe=true"),
+        tronSwapTitle = json.optString("tron_swap_title", "LetsExchange")
     )
 
     constructor() : this(
@@ -175,7 +179,9 @@ data class ConfigEntity(
         enabledStaking = emptyList(),
         qrScannerExtends = emptyList(),
         region = "US",
-        tonkeeperApiUrl = "https://api.tonkeeper.com"
+        tonkeeperApiUrl = "https://api.tonkeeper.com",
+        tronSwapUrl = "https://widget.letsexchange.io/en?affiliate_id=ffzymmunvvyxyypo&coin_from=ton&coin_to=USDT-TRC20&is_iframe=true",
+        tronSwapTitle = "LetsExchange"
     )
 
     companion object {

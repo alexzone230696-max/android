@@ -13,6 +13,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
+import com.tonapps.blockchain.tron.isValidTronAddress
 import com.tonapps.extensions.getParcelableCompat
 import com.tonapps.extensions.getUserMessage
 import com.tonapps.extensions.isPositive
@@ -21,12 +22,12 @@ import com.tonapps.extensions.uri
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.icu.CurrencyFormatter.withCustomSymbol
 import com.tonapps.tonkeeper.core.Amount
-import com.tonapps.tonkeeper.core.entities.WalletPurchaseMethodEntity
 import com.tonapps.tonkeeper.extensions.clipboardText
 import com.tonapps.tonkeeper.extensions.copyToClipboard
 import com.tonapps.tonkeeper.extensions.getTitle
 import com.tonapps.tonkeeper.extensions.hideKeyboard
 import com.tonapps.tonkeeper.helper.BrowserHelper
+import com.tonapps.tonkeeper.koin.serverConfig
 import com.tonapps.tonkeeper.koin.walletViewModel
 import com.tonapps.tonkeeper.popup.ActionSheet
 import com.tonapps.tonkeeper.ui.base.WalletContextScreen
@@ -76,8 +77,8 @@ import uikit.extensions.getDimensionPixelSize
 import uikit.extensions.hideKeyboard
 import uikit.extensions.setEndDrawable
 import uikit.span.ClickableSpanCompat
-import uikit.widget.ColumnLayout
 import uikit.widget.AsyncImageView
+import uikit.widget.ColumnLayout
 import uikit.widget.HeaderView
 import uikit.widget.InputView
 import uikit.widget.LoadableButton
@@ -280,9 +281,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
         collectFlow(viewModel.destinationFlow) { destination ->
             when (destination) {
                 is SendDestination.TokenError -> {
-                    collectFlow(viewModel.swapMethodFlow) {
-                        applyTokenError(destination, it)
-                    }
+                    applyTokenError(destination)
                 }
 
                 else -> {
@@ -342,10 +341,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
         return super.onBackPressed()
     }
 
-    private fun applyTokenError(
-        error: SendDestination.TokenError,
-        swapMethod: WalletPurchaseMethodEntity?
-    ) {
+    private fun applyTokenError(error: SendDestination.TokenError) {
         val addressBlockchainRes = if (error.addressBlockchain == Blockchain.TON) {
             Localization.ton
         } else {
@@ -361,7 +357,9 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             Localization.send_wrong_blockchain,
             getString(addressBlockchainRes),
         )
-        val swapTitle = swapMethod?.method?.title ?: ""
+
+        val swapTitle = context?.serverConfig?.tronSwapTitle ?: ""
+
         val swapText = getString(
             Localization.send_wrong_blockchain_swap,
             getString(selectedBlockchainRes),
@@ -371,7 +369,9 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
 
         val isUsdt = error.selectedToken.isTrc20 || error.selectedToken.isUsdt
 
-        if (swapMethod != null && isUsdt && !viewModel.isTronDisabled) {
+        val swapUrl = context?.serverConfig?.tronSwapUrl
+
+        if (swapUrl != null && isUsdt && !viewModel.isTronDisabled) {
             val spannableString = SpannableString("$errorText $swapText")
             val start = spannableString.indexOf(swapTitle)
             spannableString.setSpan(
@@ -383,7 +383,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             addressErrorView.setTextColor(requireContext().textSecondaryColor)
             addressErrorView.text = spannableString
             addressErrorView.setOnClickListener {
-                BrowserHelper.openPurchase(requireContext(), swapMethod)
+                BrowserHelper.open(requireContext(), swapUrl)
             }
         } else {
             addressErrorView.setTextColor(requireContext().accentRedColor)
@@ -449,7 +449,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
 
         if (targetAddress != null) {
             lifecycleScope.launch(Dispatchers.Main) {
-                if (viewModel.isNeedMemoAddress(targetAddress)) {
+                if (viewModel.isNeedMemoAddress(targetAddress) || targetAddress.isValidTronAddress()) {
                     showReviewState()
                     commentInput.focus()
                 } else if (type == Type.Direct && amountNano.isPositive()) {

@@ -8,8 +8,6 @@ import com.tonapps.blockchain.ton.extensions.toAccountId
 import com.tonapps.icu.Coins
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.icu.Formatter
-import com.tonapps.tonkeeper.api.getCurrencyCodeByCountry
-import com.tonapps.tonkeeper.core.entities.WalletPurchaseMethodEntity
 import com.tonapps.tonkeeper.core.history.ActionOptions
 import com.tonapps.tonkeeper.core.history.HistoryHelper
 import com.tonapps.tonkeeper.core.history.list.item.HistoryItem
@@ -284,8 +282,8 @@ class TokenViewModel(
         items.add(
             Item.Actions(
                 swapUri = api.config.swapUri,
-                swapMethod = if (token.isTrc20) getSwapMethod() else null,
-                swapDisabled = api.config.flags.disableSwap || (token.isUSDe && usdeDisabled),
+                tronSwapUrl = if (token.isTrc20) api.config.tronSwapUrl else null,
+                swapDisabled = api.config.flags.disableSwap || ((token.isUSDe || token.isTsUSDe) && usdeDisabled),
                 token = token.balance.token,
                 wallet = wallet,
             )
@@ -566,25 +564,5 @@ class TokenViewModel(
         accountRepository.requestTonProofToken(wallet)?.let {
             batteryRepository.getCharges(it, wallet.publicKey, wallet.testnet, true)
         } ?: 0
-    }
-
-    private suspend fun getSwapMethod() = withContext(Dispatchers.IO) {
-        if (!tronUsdtEnabled) {
-            return@withContext null
-        }
-
-        val method = purchaseRepository.getMethod(
-            id = "letsexchange_buy_swap",
-            testnet = wallet.testnet,
-            locale = settingsRepository.getLocale()
-        )
-        if (method != null) {
-            val currency = api.getCurrencyCodeByCountry(settingsRepository)
-            WalletPurchaseMethodEntity(
-                method = method, wallet = wallet, currency = currency, config = api.config
-            )
-        } else {
-            null
-        }
     }
 }

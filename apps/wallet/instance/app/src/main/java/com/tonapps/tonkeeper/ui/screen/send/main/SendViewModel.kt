@@ -15,19 +15,16 @@ import com.tonapps.extensions.filterList
 import com.tonapps.extensions.state
 import com.tonapps.icu.Coins
 import com.tonapps.icu.CurrencyFormatter
-import com.tonapps.tonkeeper.api.getCurrencyCodeByCountry
 import com.tonapps.tonkeeper.core.Amount
 import com.tonapps.tonkeeper.core.AnalyticsHelper
 import com.tonapps.tonkeeper.core.Fee
 import com.tonapps.tonkeeper.core.SendBlockchainException
 import com.tonapps.tonkeeper.core.entities.SendMetadataEntity
 import com.tonapps.tonkeeper.core.entities.TransferEntity
-import com.tonapps.tonkeeper.core.entities.WalletPurchaseMethodEntity
 import com.tonapps.tonkeeper.extensions.isPrintableAscii
 import com.tonapps.tonkeeper.extensions.isSafeModeEnabled
 import com.tonapps.tonkeeper.extensions.toGrams
 import com.tonapps.tonkeeper.extensions.with
-import com.tonapps.tonkeeper.koin.settingsRepository
 import com.tonapps.tonkeeper.manager.tx.TransactionManager
 import com.tonapps.tonkeeper.ui.base.BaseWalletVM
 import com.tonapps.tonkeeper.ui.screen.send.main.SendScreen.Companion.Type
@@ -77,7 +74,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -1398,25 +1394,4 @@ class SendViewModel(
         }
         return tokenCustomPayload ?: TokenEntity.TransferPayload.empty(token.address)
     }
-
-    val swapMethodFlow = flow {
-        val method = purchaseRepository.getMethod(
-            id = "letsexchange_buy_swap",
-            testnet = wallet.testnet,
-            locale = settingsRepository.getLocale()
-        )
-        if (method != null) {
-            val currency = api.getCurrencyCodeByCountry(settingsRepository)
-            emit(
-                WalletPurchaseMethodEntity(
-                    method = method,
-                    wallet = wallet,
-                    currency = currency,
-                    config = api.config
-                )
-            )
-        } else {
-            emit(null)
-        }
-    }.take(1).flowOn(Dispatchers.IO)
 }
