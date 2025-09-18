@@ -57,7 +57,7 @@ data class ConfigEntity(
     val region: String,
     val tonkeeperApiUrl: String,
     val tronSwapUrl: String,
-    val tronSwapTitle: String
+    val tronSwapTitle: String,
 ): Parcelable {
 
     @IgnoredOnParcel

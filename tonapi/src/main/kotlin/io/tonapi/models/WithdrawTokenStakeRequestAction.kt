@@ -16,6 +16,8 @@
 package io.tonapi.models
 
 import io.tonapi.models.AccountAddress
+import io.tonapi.models.Price
+import io.tonapi.models.Protocol
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -29,19 +31,16 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 
-data class UnSubscriptionAction (
+data class WithdrawTokenStakeRequestAction (
 
-    @SerialName(value = "subscriber")
-    val subscriber: AccountAddress,
+    @SerialName(value = "staker")
+    val staker: AccountAddress,
 
-    @SerialName(value = "subscription")
-    val subscription: kotlin.String,
+    @SerialName(value = "protocol")
+    val protocol: Protocol,
 
-    @SerialName(value = "beneficiary")
-    val beneficiary: AccountAddress,
-
-    @SerialName(value = "admin")
-    val admin: AccountAddress
+    @SerialName(value = "stake_meta")
+    val stakeMeta: Price? = null
 
 ) {
 

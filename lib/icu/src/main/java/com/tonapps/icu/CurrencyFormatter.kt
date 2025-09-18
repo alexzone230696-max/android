@@ -103,7 +103,7 @@ object CurrencyFormatter {
     fun formatFiat(
         currency: String,
         value: BigDecimal,
-        roundingMode: RoundingMode = RoundingMode.DOWN,
+        roundingMode: RoundingMode = RoundingMode.HALF_EVEN,
         replaceSymbol: Boolean = true,
         stripTrailingZeros: Boolean = false,
     ): CharSequence {
@@ -113,7 +113,7 @@ object CurrencyFormatter {
     fun formatFiat(
         currency: String,
         value: Coins,
-        roundingMode: RoundingMode = RoundingMode.DOWN,
+        roundingMode: RoundingMode = RoundingMode.HALF_EVEN,
         replaceSymbol: Boolean = true,
     ) = formatFiat(currency, value.value, roundingMode, replaceSymbol)
 

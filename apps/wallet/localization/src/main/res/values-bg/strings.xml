@@ -654,5 +654,8 @@
     <string name="deposit_and_stake">Депозирайте и заложете</string>
     <string name="ethena_check_eligibility">Проверете статуса</string>
     <string name="about_ethena">Относно Ethena</string>
+    <string name="swap_disclaimer">Услугата се предоставя от %1$s\n%2$s · %3$s</string>
+    <string name="terms_of_use">Условия за ползване</string>
+    <string name="privacy_policy">Политика за поверителност</string>
 
 </resources>

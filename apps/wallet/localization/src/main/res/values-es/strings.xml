@@ -608,5 +608,8 @@
     <string name="deposit_and_stake">Depositar y hacer staking</string>
     <string name="ethena_check_eligibility">Comprobar estado</string>
     <string name="about_ethena">Acerca de Ethena</string>
+    <string name="swap_disclaimer">Servicio proporcionado por %1$s\n%2$s · %3$s</string>
+    <string name="terms_of_use">Condiciones de uso</string>
+    <string name="privacy_policy">Política de privacidad</string>
 
 </resources>

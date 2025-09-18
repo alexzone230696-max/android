@@ -6,6 +6,7 @@
     <string name="w5beta" translatable="false">W5 Beta</string>
     <string name="fake" translatable="false">FAKE</string>
     <string name="beta" translatable="false">Beta</string>
+    <string name="ston_fi" translatable="false">STON.fi</string>
     <string name="slippage" translatable="false">Slippage</string>
     <string name="ok" translatable="false">OK</string>
     <string name="usb" translatable="false">USB</string>
@@ -702,4 +703,7 @@
     <string name="ethena" translatable="false">Ethena</string>
     <string name="ethena_check_eligibility">Check Eligibility</string>
     <string name="about_ethena">About Ethena</string>
+    <string name="swap_disclaimer">Service provided by %1$s\n%2$s · %3$s</string>
+    <string name="terms_of_use">Terms of Use</string>
+    <string name="privacy_policy">Privacy Policy</string>
 </resources>

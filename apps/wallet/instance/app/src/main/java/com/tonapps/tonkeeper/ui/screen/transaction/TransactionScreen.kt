@@ -87,6 +87,9 @@ class TransactionScreen : BaseFragment(R.layout.dialog_transaction), BaseFragmen
     private val isScam: Boolean
         get() = (localIsScam ?: actionArgs?.isScam) == true
 
+    private val isSimplePreview: Boolean
+        get() = actionArgs?.action == ActionType.Unknown
+
     private val comment: String?
         get() = actionArgs?.let { action ->
             viewModel.getComment(action.txId) ?: action.comment?.body
@@ -172,6 +175,20 @@ class TransactionScreen : BaseFragment(R.layout.dialog_transaction), BaseFragmen
             initArgs(actionArgs!!)
         } else {
             finish()
+        }
+
+        if (isSimplePreview) {
+            accountNameView.visibility = View.VISIBLE
+            accountNameView.position = ListCell.Position.FIRST
+            accountNameView.title = getString(Localization.name)
+            accountNameView.value = actionArgs?.tokenCode
+
+            feeView.position = ListCell.Position.MIDDLE
+
+            commentView.visibility = View.VISIBLE
+            commentView.position = ListCell.Position.LAST
+            commentView.title = getString(Localization.details)
+            commentView.value = actionArgs?.title
         }
     }
 

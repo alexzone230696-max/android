@@ -29,19 +29,13 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 
-data class UnSubscriptionAction (
+data class SetSignatureAllowedAction (
 
-    @SerialName(value = "subscriber")
-    val subscriber: AccountAddress,
+    @SerialName(value = "wallet")
+    val wallet: AccountAddress,
 
-    @SerialName(value = "subscription")
-    val subscription: kotlin.String,
-
-    @SerialName(value = "beneficiary")
-    val beneficiary: AccountAddress,
-
-    @SerialName(value = "admin")
-    val admin: AccountAddress
+    @SerialName(value = "allowed")
+    val allowed: kotlin.Boolean
 
 ) {
 

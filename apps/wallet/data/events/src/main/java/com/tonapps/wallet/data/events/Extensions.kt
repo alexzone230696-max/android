@@ -23,7 +23,7 @@ fun Action.isOutTransfer(accountId: String): Boolean {
 }
 
 val Action.recipient: AccountAddress?
-    get() = nftItemTransfer?.recipient ?: tonTransfer?.recipient ?: jettonTransfer?.recipient ?: jettonSwap?.userWallet ?: jettonMint?.recipient ?: depositStake?.staker ?: withdrawStake?.staker ?: withdrawStakeRequest?.staker
+    get() = nftItemTransfer?.recipient ?: tonTransfer?.recipient ?: jettonTransfer?.recipient ?: jettonSwap?.userWallet ?: jettonMint?.recipient ?: depositStake?.staker ?: withdrawStake?.staker ?: withdrawStakeRequest?.staker ?: depositTokenStake?.staker ?: withdrawTokenStakeRequest?.staker
 
 val Action.sender: AccountAddress?
-    get() = nftItemTransfer?.sender ?:tonTransfer?.sender ?: jettonTransfer?.sender ?: jettonSwap?.userWallet ?: jettonBurn?.sender ?: depositStake?.staker ?: withdrawStake?.staker ?: withdrawStakeRequest?.staker
+    get() = nftItemTransfer?.sender ?:tonTransfer?.sender ?: jettonTransfer?.sender ?: jettonSwap?.userWallet ?: jettonBurn?.sender ?: depositStake?.staker ?: withdrawStake?.staker ?: withdrawStakeRequest?.staker ?: depositTokenStake?.staker ?: withdrawTokenStakeRequest?.staker

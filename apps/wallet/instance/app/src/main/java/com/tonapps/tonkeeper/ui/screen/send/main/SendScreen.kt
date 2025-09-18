@@ -19,6 +19,8 @@ import com.tonapps.extensions.getUserMessage
 import com.tonapps.extensions.isPositive
 import com.tonapps.extensions.shortTron
 import com.tonapps.extensions.uri
+import com.tonapps.icu.Coins
+import com.tonapps.icu.Coins.Companion.isPositive
 import com.tonapps.icu.CurrencyFormatter
 import com.tonapps.icu.CurrencyFormatter.withCustomSymbol
 import com.tonapps.tonkeeper.core.Amount
@@ -325,7 +327,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
 
         initializeArgs(
             args.targetAddress,
-            args.amountNano,
+            args.amount,
             args.text,
             args.tokenAddress,
             args.bin,
@@ -431,7 +433,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
 
     fun initializeArgs(
         targetAddress: String?,
-        amountNano: Long?,
+        amount: Coins?,
         text: String?,
         tokenAddress: String?,
         bin: Cell? = null,
@@ -439,7 +441,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
     ) {
         viewModel.initializeTokenAndAmount(
             tokenAddress = tokenAddress,
-            amountNano = amountNano,
+            amount = amount,
             type = type
         )
 
@@ -452,11 +454,11 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
                 if (viewModel.isNeedMemoAddress(targetAddress) || targetAddress.isValidTronAddress()) {
                     showReviewState()
                     commentInput.focus()
-                } else if (type == Type.Direct && amountNano.isPositive()) {
+                } else if (type == Type.Direct && amount.isPositive()) {
                     showDirectState()
                 }
             }
-        } else if (type == Type.Direct && amountNano.isPositive()) {
+        } else if (type == Type.Direct && amount.isPositive()) {
             showDirectState()
         } else {
             showReviewState()
@@ -906,7 +908,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
         class Builder(val wallet: WalletEntity) {
             private var targetAddress: String? = null
             private var tokenAddress: String? = null
-            private var amountNano: Long? = null
+            private var amount: Coins? = null
             private var text: String? = null
             private var nftAddress: String? = null
             private var type: Type = Type.Default
@@ -920,8 +922,8 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
                 this.tokenAddress = tokenAddress
             }
 
-            fun setAmountNano(amountNano: Long?) = apply {
-                this.amountNano = amountNano
+            fun setAmount(amount: Coins?) = apply {
+                this.amount = amount
             }
 
             fun setText(text: String?) = apply {
@@ -944,7 +946,7 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
                 wallet,
                 targetAddress,
                 tokenAddress,
-                amountNano,
+                amount,
                 text,
                 nftAddress,
                 type,
@@ -960,17 +962,16 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             wallet: WalletEntity,
             targetAddress: String? = null,
             tokenAddress: String? = null,
-            amountNano: Long? = null,
+            amount: Coins? = null,
             text: String? = null,
             nftAddress: String? = null,
             type: Type,
             bin: Cell? = null
         ): SendScreen {
-            Log.d("SendScreen", "newInstance: $targetAddress, $tokenAddress, $amountNano, $text")
             val args = SendArgs(
                 targetAddress = targetAddress,
                 tokenAddress = tokenAddress,
-                amountNano = amountNano,
+                amount = amount,
                 text = text, nftAddress = nftAddress ?: "",
                 type = type,
                 bin = bin

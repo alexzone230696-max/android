@@ -608,5 +608,8 @@
     <string name="deposit_and_stake">Depozit va stake qilish</string>
     <string name="ethena_check_eligibility">Statusni tekshirish</string>
     <string name="about_ethena">Ethena haqida</string>
+    <string name="swap_disclaimer">Xizmat %1$s tomonidan taqdim etilgan \n%2$s · %3$s</string>
+    <string name="terms_of_use">Foydalanish shartlari</string>
+    <string name="privacy_policy">Maxfiylik siyosati</string>
 
 </resources>

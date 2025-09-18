@@ -102,7 +102,9 @@ internal class InternalApi(
     }
 
     private fun swapEndpoint(path: String): String {
-        val builder = "https://swap.tonkeeper.com".toUri().buildUpon()
+        // val host = "dev-swap.tonkeeper.com"
+        val host = "swap.tonkeeper.com"
+        val builder = "https://$host".toUri().buildUpon()
             .appendEncodedPath(path)
         _deviceCountry?.let {
             builder.appendQueryParameter("device_country_code", _deviceCountry)
@@ -123,7 +125,7 @@ internal class InternalApi(
         okHttpClient.get(swapEndpoint("v2/onramp/currencies"))
     }
 
-    fun getOnRampPaymentMethods() = withRetry {
+    fun getOnRampPaymentMethods(currency: String) = withRetry {
         okHttpClient.get(swapEndpoint("v2/onramp/payment_methods"))
     }
 

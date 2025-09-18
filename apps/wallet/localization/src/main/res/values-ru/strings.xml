@@ -676,4 +676,7 @@
     <string name="deposit_and_stake">Депозит и стейкинг</string>
     <string name="ethena_check_eligibility">Проверить статус</string>
     <string name="about_ethena">Подробнее об Ethena</string>
+    <string name="swap_disclaimer">Сервис предоставлен %1$s\n%2$s · %3$s</string>
+    <string name="terms_of_use">Условия</string>
+    <string name="privacy_policy">Политика</string>
 </resources>

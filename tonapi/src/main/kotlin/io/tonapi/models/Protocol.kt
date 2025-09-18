@@ -15,7 +15,6 @@
 
 package io.tonapi.models
 
-import io.tonapi.models.AccountAddress
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -29,19 +28,13 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable
 
-data class UnSubscriptionAction (
+data class Protocol (
 
-    @SerialName(value = "subscriber")
-    val subscriber: AccountAddress,
+    @SerialName(value = "name")
+    val name: kotlin.String,
 
-    @SerialName(value = "subscription")
-    val subscription: kotlin.String,
-
-    @SerialName(value = "beneficiary")
-    val beneficiary: AccountAddress,
-
-    @SerialName(value = "admin")
-    val admin: AccountAddress
+    @SerialName(value = "image")
+    val image: kotlin.String? = null
 
 ) {
 

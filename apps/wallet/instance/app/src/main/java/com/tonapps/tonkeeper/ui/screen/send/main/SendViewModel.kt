@@ -381,7 +381,7 @@ class SendViewModel(
         TronTransfer(
             from = tronAddress,
             to = destination.address,
-            amount = amount.value.toLong().toBigInteger(),
+            amount = amount.value.toBigInteger(),
             contractAddress = token.address
         )
     }
@@ -458,15 +458,15 @@ class SendViewModel(
         if (value.isNegative) {
             value = Coins.ZERO
         }
+        val fiat = rates.convert(token.address, value)
 
         SendTransaction.Amount(
             value = value,
-            converted = rates.convert(token.address, value),
+            converted = fiat,
             format = CurrencyFormatter.formatFull(token.symbol, value, token.decimals),
-            convertedFormat = CurrencyFormatter.format(
+            convertedFormat = CurrencyFormatter.formatFiat(
                 currency.code,
-                rates.convert(token.address, value),
-                RoundingMode.UP,
+                fiat
             ),
         )
     }
@@ -514,7 +514,7 @@ class SendViewModel(
     }
 
     fun initializeTokenAndAmount(
-        tokenAddress: String?, amountNano: Long?, type: Type
+        tokenAddress: String?, amount: Coins?, type: Type
     ) {
         tokensFlow.take(1).filter {
             it.isNotEmpty()
@@ -529,7 +529,7 @@ class SendViewModel(
             ?: TokenEntity.TON
         }.flowOn(Dispatchers.IO).onEach { token ->
             userInputToken(token)
-            applyAmount(token, amountNano)
+            applyAmount(token, amount)
         }.launchIn(viewModelScope)
 
         _userInputFlow.update {
@@ -541,9 +541,9 @@ class SendViewModel(
        api.resolveAccount(targetAddress, wallet.testnet)?.memoRequired == true
     }
 
-    private fun applyAmount(token: TokenEntity, amountNano: Long?) {
-        amountNano?.let {
-            _uiInputAmountFlow.tryEmit(Coins.of(it, token.decimals))
+    private fun applyAmount(token: TokenEntity, amount: Coins?) {
+        amount?.let {
+            _uiInputAmountFlow.tryEmit(it)
         }
     }
 

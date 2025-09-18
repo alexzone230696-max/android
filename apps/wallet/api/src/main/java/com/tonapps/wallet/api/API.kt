@@ -191,7 +191,7 @@ class API(
 
     fun getOnRampData() = internalApi.getOnRampData()
 
-    fun getOnRampPaymentMethods() = internalApi.getOnRampPaymentMethods()
+    fun getOnRampPaymentMethods(currency: String) = internalApi.getOnRampPaymentMethods(currency)
 
     fun getOnRampMerchants() = internalApi.getOnRampMerchants()
 
@@ -199,7 +199,7 @@ class API(
         swapApi.getSwapAssets()?.let(::JSONArray)
     }.getOrNull() ?: JSONArray()
 
-    @kotlin.Throws
+    @Throws
     suspend fun calculateOnRamp(args: OnRampArgsEntity): OnRampMerchantEntity.Data = withContext(Dispatchers.IO) {
         val data = internalApi.calculateOnRamp(args) ?: throw Exception("Empty response")
         val json = JSONObject(data)

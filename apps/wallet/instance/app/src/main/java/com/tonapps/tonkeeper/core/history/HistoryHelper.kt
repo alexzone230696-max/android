@@ -1,6 +1,7 @@
 package com.tonapps.tonkeeper.core.history
 
 import android.content.Context
+import android.util.Log
 import androidx.collection.arrayMapOf
 import com.tonapps.blockchain.ton.extensions.equalsAddress
 import com.tonapps.icu.Coins
@@ -577,7 +578,82 @@ class HistoryHelper(
         val dateDetails = DateHelper.formatTransactionDetailsTime(timestamp, settingsRepository.getLocale())
 
         // actionArgs.isTon && !actionArgs.isOut && !actionArgs.isScam && actionArgs.comment != null
-        if (action.purchase != null) {
+        if (action.withdrawTokenStakeRequest != null) {
+            val withdrawTokenStakeRequest = action.withdrawTokenStakeRequest!!
+
+            val stakeMeta = withdrawTokenStakeRequest.stakeMeta
+            val jettonSymbol = stakeMeta?.tokenName ?: "UNK"
+            val jettonAddress = stakeMeta?.jetton ?: ""
+            val jettonDecimals = stakeMeta?.decimals ?: 9
+            val coins = stakeMeta?.let {
+                Coins.ofNano(it.value, it.decimals)
+            } ?: Coins.ZERO
+            val value = CurrencyFormatter.format(jettonSymbol, coins).withPlus
+            val valueFullFormatted = CurrencyFormatter.formatFull(jettonSymbol, coins, jettonDecimals)
+            val rates = ratesRepository.getRates(currency, jettonAddress)
+            val inCurrency = rates.convert(jettonAddress, coins)
+
+            return HistoryItem.Event(
+                index = index,
+                txId = txId,
+                action = ActionType.WithdrawStake,
+                title = simplePreview.name,
+                iconURL = withdrawTokenStakeRequest.protocol.image,
+                subtitle = withdrawTokenStakeRequest.protocol.name,
+                value = value,
+                valueFullFormatted = valueFullFormatted.withPlus,
+                tokenCode = stakeMeta?.jetton,
+                coinIconUrl = stakeMeta?.image ?: "",
+                timestamp = timestamp,
+                date = date,
+                dateDetails = dateDetails,
+                isOut = false,
+                sender = HistoryItem.Account.ofSender(action, wallet.testnet),
+                recipient = HistoryItem.Account.ofSender(action, wallet.testnet),
+                failed = action.status == Action.Status.failed,
+                currency = CurrencyFormatter.formatFiat(currency.code, inCurrency),
+                isScam = isScam,
+                wallet = wallet,
+                actionOutStatus = ActionOutStatus.Received,
+            )
+        } else if (action.depositTokenStake != null) {
+            val depositTokenStake = action.depositTokenStake!!
+            val stakeMeta = depositTokenStake.stakeMeta
+            val jettonSymbol = stakeMeta?.tokenName ?: "UNK"
+            val jettonAddress = stakeMeta?.jetton ?: ""
+            val jettonDecimals = stakeMeta?.decimals ?: 9
+            val coins = stakeMeta?.let {
+                Coins.ofNano(it.value, it.decimals)
+            } ?: Coins.ZERO
+            val value = CurrencyFormatter.format(jettonSymbol, coins).withMinus
+            val valueFullFormatted = CurrencyFormatter.formatFull(jettonSymbol, coins, jettonDecimals)
+            val rates = ratesRepository.getRates(currency, jettonAddress)
+            val inCurrency = rates.convert(jettonAddress, coins)
+
+            return HistoryItem.Event(
+                index = index,
+                txId = txId,
+                action = ActionType.DepositStake,
+                title = simplePreview.name,
+                iconURL = depositTokenStake.protocol.image,
+                subtitle = depositTokenStake.protocol.name,
+                value = value,
+                valueFullFormatted = valueFullFormatted.withMinus,
+                tokenCode = stakeMeta?.jetton,
+                coinIconUrl = stakeMeta?.image ?: "",
+                timestamp = timestamp,
+                date = date,
+                dateDetails = dateDetails,
+                isOut = false,
+                recipient = HistoryItem.Account.ofSender(action, wallet.testnet),
+                sender = HistoryItem.Account.ofSender(action, wallet.testnet),
+                failed = action.status == Action.Status.failed,
+                currency = CurrencyFormatter.formatFiat(currency.code, inCurrency),
+                isScam = isScam,
+                wallet = wallet,
+                actionOutStatus = ActionOutStatus.Send,
+            )
+        } else if (action.purchase != null) {
             val purchase = action.purchase!!
 
             val tokenCode = purchase.amount.tokenName
@@ -1221,7 +1297,7 @@ class HistoryHelper(
         } else if (action.subscribe != null) {
             val subscribe = action.subscribe!!
 
-            val amount = Coins.of(subscribe.amount)
+            val amount = Coins.ofNano(subscribe.price.value, subscribe.price.decimals)
             val value = CurrencyFormatter.format("TON", amount)
             val valueFullFormatted = CurrencyFormatter.formatFull("TON", amount, 9)
 
@@ -1260,7 +1336,6 @@ class HistoryHelper(
             )
         }
     }
-
 
     private fun createFakeUnknown(position: ListCell.Position = ListCell.Position.SINGLE) =
         HistoryItem.Event(

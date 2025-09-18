@@ -175,7 +175,7 @@ class OnRampPickerViewModel(
     }
 
     private fun fiatMethodIcons(keys: List<String>): List<Uri> {
-        val icons = getCurrencyIcons(keys, settingsRepository.country.equals("ru", ignoreCase = true))
+        val icons = getCurrencyIcons(keys, environment.country.equals("ru", ignoreCase = true))
         return icons.map { getUriForResourceId(it) }
     }
 

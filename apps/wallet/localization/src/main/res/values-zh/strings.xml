@@ -603,5 +603,8 @@
     <string name="deposit_and_stake">存入并质押</string>
     <string name="ethena_check_eligibility">检查状态</string>
     <string name="about_ethena">关于 Ethena</string>
+    <string name="swap_disclaimer">服务由 %1$s 提供 \n%2$s · %3$s</string>
+    <string name="terms_of_use">使用条款</string>
+    <string name="privacy_policy">隐私政策</string>
 
 </resources>

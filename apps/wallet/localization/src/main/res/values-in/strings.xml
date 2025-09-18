@@ -603,5 +603,8 @@
     <string name="deposit_and_stake">Deposit &amp; Stake</string>
     <string name="ethena_check_eligibility">Periksa Status</string>
     <string name="about_ethena">Tentang Ethena</string>
+    <string name="swap_disclaimer">Layanan disediakan oleh %1$s\n%2$s · %3$s</string>
+    <string name="terms_of_use">Ketentuan Penggunaan</string>
+    <string name="privacy_policy">Kebijakan Privasi</string>
 
 </resources>
