@@ -128,8 +128,6 @@ dependencies {
     implementation(libs.okhttp.sse)
     implementation(libs.aptabase)
 
-    implementation(libs.bleManager)
-
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.foundation)
     implementation(libs.compose.foundationLayout)

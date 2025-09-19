@@ -27,7 +27,7 @@ okio = { module = "com.squareup.okio:okio", version = "3.16.0" }
 material = { module = "com.google.android.material:material", version = "1.13.0" }
 flexbox = { module = "com.google.android.flexbox:flexbox", version = "3.0.0" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version = "17.3.0" }
-bleManager = { module = "com.github.cosmostation:hw-transport-android-ble", version = "0.0.8" }
+timber = { module = "com.jakewharton.timber:timber", version = "5.0.1" }
 
 # TON
 ton-tvm = { module = "org.ton:ton-kotlin-tvm", version.ref = "ton" }
