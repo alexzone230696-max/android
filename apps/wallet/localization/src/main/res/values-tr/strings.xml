@@ -611,5 +611,7 @@
     <string name="swap_disclaimer">Hizmet %1$s tarafından sağlandı \n%2$s · %3$s</string>
     <string name="terms_of_use">Kullanım Şartları</string>
     <string name="privacy_policy">Gizlilik Politikası</string>
+    <string name="invalid_address">Geçersiz cüzdan adresi.</string>
+    <string name="scam_address_error">Bu adrese transferler desteklenmiyor.</string>
 
 </resources>

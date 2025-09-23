@@ -657,5 +657,7 @@
     <string name="swap_disclaimer">Услугата се предоставя от %1$s\n%2$s · %3$s</string>
     <string name="terms_of_use">Условия за ползване</string>
     <string name="privacy_policy">Политика за поверителност</string>
+    <string name="invalid_address">Невалиден адрес на портфейла.</string>
+    <string name="scam_address_error">Прехвърляния към този адрес не се поддържат.</string>
 
 </resources>

@@ -606,5 +606,7 @@
     <string name="swap_disclaimer">服务由 %1$s 提供 \n%2$s · %3$s</string>
     <string name="terms_of_use">使用条款</string>
     <string name="privacy_policy">隐私政策</string>
+    <string name="invalid_address">钱包地址无效。</string>
+    <string name="scam_address_error">不支持向该地址转账。</string>
 
 </resources>

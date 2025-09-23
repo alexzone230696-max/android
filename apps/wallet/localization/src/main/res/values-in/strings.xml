@@ -606,5 +606,7 @@
     <string name="swap_disclaimer">Layanan disediakan oleh %1$s\n%2$s · %3$s</string>
     <string name="terms_of_use">Ketentuan Penggunaan</string>
     <string name="privacy_policy">Kebijakan Privasi</string>
+    <string name="invalid_address">Alamat dompet tidak valid.</string>
+    <string name="scam_address_error">Transfer ke alamat ini tidak didukung.</string>
 
 </resources>

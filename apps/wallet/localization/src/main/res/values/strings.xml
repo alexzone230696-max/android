@@ -706,4 +706,6 @@
     <string name="swap_disclaimer">Service provided by %1$s\n%2$s · %3$s</string>
     <string name="terms_of_use">Terms of Use</string>
     <string name="privacy_policy">Privacy Policy</string>
+    <string name="invalid_address">Invalid wallet address.</string>
+    <string name="scam_address_error">Transfers to this address are not supported.</string>
 </resources>

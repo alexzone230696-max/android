@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -16,7 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import com.tonapps.blockchain.tron.isValidTronAddress
 import com.tonapps.extensions.getParcelableCompat
 import com.tonapps.extensions.getUserMessage
-import com.tonapps.extensions.isPositive
 import com.tonapps.extensions.shortTron
 import com.tonapps.extensions.uri
 import com.tonapps.icu.Coins
@@ -285,6 +283,12 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
                 is SendDestination.TokenError -> {
                     applyTokenError(destination)
                 }
+                is SendDestination.NotFound -> {
+                    applyInvalidAddressError()
+                }
+                is SendDestination.Scam -> {
+                    applyScamAddressError()
+                }
 
                 else -> {
                     addressErrorView.visibility = View.GONE
@@ -341,6 +345,16 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             return false
         }
         return super.onBackPressed()
+    }
+
+    private fun applyInvalidAddressError() {
+        addressErrorView.setText(Localization.invalid_address)
+        addressErrorView.visibility = View.VISIBLE
+    }
+
+    private fun applyScamAddressError() {
+        addressErrorView.setText(Localization.scam_address_error)
+        addressErrorView.visibility = View.VISIBLE
     }
 
     private fun applyTokenError(error: SendDestination.TokenError) {

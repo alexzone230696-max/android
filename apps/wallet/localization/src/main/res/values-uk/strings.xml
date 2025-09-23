@@ -621,5 +621,7 @@
     <string name="swap_disclaimer">Послуга надається %1$s\n%2$s · %3$s</string>
     <string name="terms_of_use">Умови</string>
     <string name="privacy_policy">Політика</string>
+    <string name="invalid_address">Неправильна адреса гаманця.</string>
+    <string name="scam_address_error">Перекази на цю адресу не підтримуються.</string>
 
 </resources>

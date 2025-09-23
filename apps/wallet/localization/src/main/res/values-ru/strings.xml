@@ -679,4 +679,6 @@
     <string name="swap_disclaimer">Сервис предоставлен %1$s\n%2$s · %3$s</string>
     <string name="terms_of_use">Условия</string>
     <string name="privacy_policy">Политика</string>
+    <string name="invalid_address">Неверный адрес кошелька.</string>
+    <string name="scam_address_error">Переводы на этот адрес не поддерживаются.</string>
 </resources>

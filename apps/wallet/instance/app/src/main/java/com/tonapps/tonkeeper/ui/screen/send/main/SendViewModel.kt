@@ -218,7 +218,7 @@ class SendViewModel(
     }.state(viewModelScope)
 
     val uiInputAddressErrorFlow =
-        destinationFlow.map { it is SendDestination.NotFound || it is SendDestination.TokenError }
+        destinationFlow.map { it is SendDestination.NotFound || it is SendDestination.Scam || it is SendDestination.TokenError }
 
     private val _uiInputAmountFlow = MutableEffectFlow<Coins>()
     val uiInputAmountFlow = _uiInputAmountFlow.asSharedFlow()
@@ -538,7 +538,7 @@ class SendViewModel(
     }
 
     suspend fun isNeedMemoAddress(targetAddress: String): Boolean = withContext(Dispatchers.IO) {
-       api.resolveAccount(targetAddress, wallet.testnet)?.memoRequired == true
+        api.resolveAccount(targetAddress, wallet.testnet)?.memoRequired == true
     }
 
     private fun applyAmount(token: TokenEntity, amount: Coins?) {
@@ -558,6 +558,10 @@ class SendViewModel(
 
         val account = accountDeferred.await() ?: return@withContext SendDestination.NotFound
         val publicKey = publicKeyDeferred.await()
+
+        if (account.isScam == true) {
+            return@withContext SendDestination.Scam
+        }
 
         SendDestination.TonAccount(
             userInput = userInput,

@@ -26,7 +26,6 @@ sealed class SendDestination {
         val isSuspended: Boolean,
         val isWallet: Boolean,
         val name: String?,
-        val isScam: Boolean,
         val existing: Boolean,
         val testnet: Boolean,
         val tonAddressTags: TonAddressTags,
@@ -79,7 +78,6 @@ sealed class SendDestination {
             isSuspended = account.isSuspended ?: false,
             isWallet = account.isWallet,
             name = account.name,
-            isScam = account.isScam ?: false,
             existing = (account.status == AccountStatus.active || account.status == AccountStatus.frozen),
             testnet = testnet,
             tonAddressTags = tonAddressTags,
@@ -87,6 +85,7 @@ sealed class SendDestination {
         )
     }
 
+    data object Scam : SendDestination()
     data object Empty : SendDestination()
     data object NotFound : SendDestination()
 
