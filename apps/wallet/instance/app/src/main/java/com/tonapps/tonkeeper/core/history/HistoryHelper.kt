@@ -32,7 +32,7 @@ import com.tonapps.tonkeeper.ui.screen.send.main.state.SendFee
 import com.tonapps.tonkeeper.usecase.emulation.Emulated
 import com.tonapps.uikit.list.ListCell
 import com.tonapps.wallet.api.API
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.api.tron.entity.TronEventEntity
 import com.tonapps.wallet.data.account.AccountRepository
@@ -40,6 +40,7 @@ import com.tonapps.wallet.data.account.entities.WalletEntity
 import com.tonapps.wallet.data.battery.BatteryRepository
 import com.tonapps.wallet.data.collectibles.CollectiblesRepository
 import com.tonapps.wallet.data.core.currency.WalletCurrency
+import com.tonapps.wallet.data.events.ActionType
 import com.tonapps.wallet.data.events.CommentEncryption
 import com.tonapps.wallet.data.events.EventsRepository
 import com.tonapps.wallet.data.passcode.PasscodeManager
@@ -414,14 +415,14 @@ class HistoryHelper(
                     tokenAddress = token.address,
                     tokenCode = token.symbol,
                     coinIconUrl = token.imageUri.toString(),
-                    lt = event.timestamp,
-                    timestamp = event.timestamp,
+                    lt = event.timestamp.value,
+                    timestamp = event.timestamp.value,
                     date = DateHelper.formatTransactionTime(
-                        event.timestamp,
+                        event.timestamp.value,
                         settingsRepository.getLocale()
                     ),
                     dateDetails = DateHelper.formatTransactionDetailsTime(
-                        event.timestamp,
+                        event.timestamp.value,
                         settingsRepository.getLocale()
                     ),
                     isOut = event.from == tronAddress,
@@ -491,7 +492,7 @@ class HistoryHelper(
                     continue
                 }
 
-                val timestamp = if (options.removeDate) 0 else event.timestamp
+                val timestamp = if (options.removeDate) 0 else (event.timestamp * 1000)
 
                 val item = action(
                     index = actionIndex,

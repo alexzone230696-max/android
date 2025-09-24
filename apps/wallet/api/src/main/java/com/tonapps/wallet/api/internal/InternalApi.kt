@@ -1,7 +1,7 @@
 package com.tonapps.wallet.api.internal
 
 import android.content.Context
-import android.util.ArrayMap
+import androidx.collection.ArrayMap
 import androidx.core.net.toUri
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.tonapps.extensions.isDebug

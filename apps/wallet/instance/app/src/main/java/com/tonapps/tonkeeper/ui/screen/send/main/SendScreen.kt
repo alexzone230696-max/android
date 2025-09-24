@@ -53,7 +53,7 @@ import com.tonapps.uikit.color.fieldErrorBorderColor
 import com.tonapps.uikit.color.textAccentColor
 import com.tonapps.uikit.color.textSecondaryColor
 import com.tonapps.uikit.icon.UIKitIcon
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.data.account.entities.WalletEntity
 import com.tonapps.wallet.data.collectibles.entities.NftEntity

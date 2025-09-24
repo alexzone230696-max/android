@@ -79,7 +79,9 @@ import com.tonapps.blockchain.ton.TonSendMode
 import com.tonapps.blockchain.ton.extensions.asCellRef
 import com.tonapps.blockchain.ton.extensions.equalsAddress
 import com.tonapps.icu.Coins.Companion.isPositive
+import com.tonapps.tonkeeper.extensions.compose
 import com.tonapps.tonkeeper.koin.analytics
+import ui.theme.LocalAppColorScheme
 import uikit.extensions.gestureNavigationEnabled
 import uikit.extensions.navigationMode
 import java.math.BigInteger
@@ -111,6 +113,7 @@ class RootActivity : BaseWalletActivity() {
         setTheme(theme)
         supportFragmentManager.fragmentFactory = WalletFragmentFactory()
         super.onCreate(savedInstanceState)
+
         if (theme.isSystem) {
             setAppearanceLight(!isDarkMode)
         } else {
@@ -251,6 +254,7 @@ class RootActivity : BaseWalletActivity() {
         } else {
             setTheme(uikit.R.style.Theme_App_Light)
         }
+        LocalAppColorScheme.providesDefault(theme.compose())
     }
 
     fun setAppearanceLight(light: Boolean) {

@@ -17,7 +17,7 @@ import com.tonapps.tonkeeper.ui.base.BaseWalletVM
 import com.tonapps.tonkeeper.ui.screen.token.viewer.list.Item
 import com.tonapps.uikit.list.ListCell
 import com.tonapps.wallet.api.API
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.ChartEntity
 import com.tonapps.wallet.api.entity.EthenaEntity
 import com.tonapps.wallet.api.entity.TokenEntity

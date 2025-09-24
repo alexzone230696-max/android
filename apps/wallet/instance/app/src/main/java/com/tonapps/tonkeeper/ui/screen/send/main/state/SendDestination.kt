@@ -1,8 +1,7 @@
 package com.tonapps.tonkeeper.ui.screen.send.main.state
 
 import com.tonapps.blockchain.ton.TonAddressTags
-import com.tonapps.blockchain.ton.extensions.isValidTonAddress
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.TokenEntity
 import io.tonapi.models.AccountStatus
 import org.ton.api.pub.PublicKeyEd25519

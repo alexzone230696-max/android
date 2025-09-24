@@ -39,7 +39,7 @@ import com.tonapps.tonkeeper.ui.screen.send.main.state.TonTransaction
 import com.tonapps.tonkeeper.usecase.sign.SignUseCase
 import com.tonapps.wallet.api.API
 import com.tonapps.wallet.api.SendBlockchainState
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.api.tron.entity.TronResourcesEntity
 import com.tonapps.wallet.data.account.AccountRepository

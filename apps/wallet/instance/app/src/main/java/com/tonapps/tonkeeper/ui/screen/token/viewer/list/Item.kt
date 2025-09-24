@@ -7,7 +7,7 @@ import com.tonapps.tonkeeper.extensions.asCurrency
 import com.tonapps.tonkeeperx.R
 import com.tonapps.uikit.list.BaseListItem
 import com.tonapps.uikit.list.ListCell
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.ChartEntity
 import com.tonapps.wallet.api.entity.EthenaEntity
 import com.tonapps.wallet.api.entity.TokenEntity

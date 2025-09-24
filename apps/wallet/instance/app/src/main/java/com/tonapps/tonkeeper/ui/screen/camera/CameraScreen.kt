@@ -27,7 +27,7 @@ import com.tonapps.tonkeeperx.R
 import com.tonapps.uikit.color.constantWhiteColor
 import com.tonapps.uikit.color.stateList
 import com.tonapps.wallet.api.API
-import com.tonapps.wallet.api.entity.Blockchain
+import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.api.entity.QRScannerExtendsEntity
 import com.tonapps.wallet.api.entity.TokenEntity
 import com.tonapps.wallet.data.account.AccountRepository
