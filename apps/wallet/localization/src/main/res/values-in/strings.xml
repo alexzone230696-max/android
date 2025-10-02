@@ -608,5 +608,10 @@
     <string name="privacy_policy">Kebijakan Privasi</string>
     <string name="invalid_address">Alamat dompet tidak valid.</string>
     <string name="scam_address_error">Transfer ke alamat ini tidak didukung.</string>
+    <string name="watch_only_info_title">Dompet Hanya Lihat</string>
+    <string name="watch_only_info_subtitle">Untuk mengirim, menandatangani, staking, menukar, dan melakukan tindakan lainnya, masukkan frasa pemulihan dompet ini.</string>
+    <string name="enter_recovery_phrase">Masukkan Frasa Pemulihan</string>
+    <string name="continue_watch_account">Lanjutkan dengan Dompet Hanya Lihat</string>
+    <string name="mnemonic_match_error">Frasa pemulihan tidak cocok dengan dompet ini</string>
 
 </resources>

@@ -47,6 +47,10 @@ class IconButtonView @JvmOverloads constructor(
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
+        setEnabledAlpha(enabled)
+    }
+
+    fun setEnabledAlpha(enabled: Boolean) {
         alpha = if (enabled) 1f else .2f
     }
 }

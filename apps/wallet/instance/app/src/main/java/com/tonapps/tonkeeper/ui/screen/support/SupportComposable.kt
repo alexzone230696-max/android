@@ -41,6 +41,7 @@ import ui.components.TextHeader
 import ui.components.button.TKButton
 import ui.theme.ButtonColorsPrimary
 import ui.theme.ButtonColorsSecondary
+import ui.theme.ButtonSizeLarge
 import ui.theme.Dimens
 import ui.theme.Shapes
 import ui.theme.UIKit
@@ -156,6 +157,7 @@ fun SupportComposable(
                 onClick = onButtonClick,
                 text = stringResource(id = Localization.ask_question),
                 buttonColors = ButtonColorsPrimary,
+                size = ButtonSizeLarge,
             )
             Spacer(modifier = Modifier.height(Dimens.offsetMedium))
             TKButton(
@@ -163,6 +165,7 @@ fun SupportComposable(
                 onClick = onCloseClick,
                 text = stringResource(id = Localization.close),
                 buttonColors = ButtonColorsSecondary,
+                size = ButtonSizeLarge,
             )
             Spacer(modifier = Modifier.height(Dimens.offsetLarge))
         }

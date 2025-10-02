@@ -659,5 +659,10 @@
     <string name="privacy_policy">Политика за поверителност</string>
     <string name="invalid_address">Невалиден адрес на портфейла.</string>
     <string name="scam_address_error">Прехвърляния към този адрес не се поддържат.</string>
+    <string name="watch_only_info_title">Портфейл само за преглед</string>
+    <string name="watch_only_info_subtitle">За да изпращате, подписвате, стейквате, разменяте и извършвате други действия, въведете фразата за възстановяване на този портфейл.</string>
+    <string name="enter_recovery_phrase">Въведете фраза за възстановяване</string>
+    <string name="continue_watch_account">Продължи в режим само за преглед</string>
+    <string name="mnemonic_match_error">Фразата за възстановяване не съвпада с този портфейл</string>
 
 </resources>

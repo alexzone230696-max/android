@@ -681,4 +681,9 @@
     <string name="privacy_policy">Политика</string>
     <string name="invalid_address">Неверный адрес кошелька.</string>
     <string name="scam_address_error">Переводы на этот адрес не поддерживаются.</string>
+    <string name="watch_only_info_title">Кошелёк в режиме просмотра</string>
+    <string name="watch_only_info_subtitle">Для отправки, подписи, стейкинга, обменов и других действий введите секретный ключ этого кошелька.</string>
+    <string name="enter_recovery_phrase">Ввести секретный ключ</string>
+    <string name="continue_watch_account">Продолжить в режиме просмотра</string>
+    <string name="mnemonic_match_error">Секретный ключ не подходит к этому кошельку</string>
 </resources>

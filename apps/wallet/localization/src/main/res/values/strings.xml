@@ -720,4 +720,9 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="invalid_address">Invalid wallet address.</string>
     <string name="scam_address_error">Transfers to this address are not supported.</string>
+    <string name="watch_only_info_title">Watch Account</string>
+    <string name="watch_only_info_subtitle">To send, sign, stake, swap, and perform other actions, enter the recovery phrase for this wallet.</string>
+    <string name="enter_recovery_phrase">Enter Recovery Phrase</string>
+    <string name="continue_watch_account">Continue with Watch Account</string>
+    <string name="mnemonic_match_error">Recovery phrase doesn’t match this wallet</string>
 </resources>

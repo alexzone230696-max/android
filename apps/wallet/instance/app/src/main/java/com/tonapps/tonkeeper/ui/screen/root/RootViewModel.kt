@@ -881,4 +881,8 @@ class RootViewModel(
             }
         }
     }
+
+    suspend fun isScamAddress(address: String, testnet: Boolean): Boolean {
+        return api.resolveAccount(address, testnet)?.isScam ?: false
+    }
 }

@@ -1,6 +1,5 @@
 package com.tonapps.tonkeeper.ui.screen.wallet.main.list.holder
 
-import android.view.View
 import android.view.ViewGroup
 import com.tonapps.tonkeeper.koin.serverFlags
 import com.tonapps.tonkeeper.ui.screen.camera.CameraScreen
@@ -10,21 +9,38 @@ import com.tonapps.tonkeeper.ui.screen.send.main.SendScreen
 import com.tonapps.tonkeeper.ui.screen.staking.stake.StakingScreen
 import com.tonapps.tonkeeper.ui.screen.swap.SwapScreen
 import com.tonapps.tonkeeper.ui.screen.wallet.main.list.Item
+import com.tonapps.tonkeeper.ui.screen.watchonly.WatchInfoScreen
 import com.tonapps.tonkeeperx.R
 import com.tonapps.wallet.api.entity.value.Blockchain
 import com.tonapps.wallet.data.account.Wallet
+import com.tonapps.wallet.data.account.entities.WalletEntity
+import uikit.widget.IconButtonView
 
 class ActionsHolder(parent: ViewGroup): Holder<Item.Actions>(parent, R.layout.view_wallet_actions) {
 
-    private val sendView = findViewById<View>(R.id.send)
-    private val receiveView = findViewById<View>(R.id.receive)
-    private val buyOrSellView = findViewById<View>(R.id.buy_or_sell)
-    private val swapView = findViewById<View>(R.id.swap)
-    private val scanView = findViewById<View>(R.id.scan)
-    private val stakeView = findViewById<View>(R.id.stake)
+    private val sendView = findViewById<IconButtonView>(R.id.send)
+    private val receiveView = findViewById<IconButtonView>(R.id.receive)
+    private val buyOrSellView = findViewById<IconButtonView>(R.id.buy_or_sell)
+    private val swapView = findViewById<IconButtonView>(R.id.swap)
+    private val scanView = findViewById<IconButtonView>(R.id.scan)
+    private val stakeView = findViewById<IconButtonView>(R.id.stake)
 
     override fun onBind(item: Item.Actions) {
+        val isWatchOnly = item.walletType == Wallet.Type.Watch
+        val isSwapEnabled = item.walletType != Wallet.Type.Watch && item.walletType != Wallet.Type.Testnet && !item.isSwapDisabled
+        val isSendEnabled = item.walletType != Wallet.Type.Watch
+        val isScanEnabled = item.walletType != Wallet.Type.Watch
+        val isStakeEnabled = item.walletType != Wallet.Type.Watch && item.walletType != Wallet.Type.Testnet && !item.isStakingDisabled
+        val isBuyOrSellEnabled = item.walletType != Wallet.Type.Testnet
+
         scanView.setOnClickListener {
+            if (isWatchOnly) {
+                openWatchInfo(item.wallet)
+                return@setOnClickListener
+            } else if (!isScanEnabled) {
+                return@setOnClickListener
+            }
+
             val chains = mutableListOf(Blockchain.TON)
 
             if (item.tronEnabled) {
@@ -38,6 +54,13 @@ class ActionsHolder(parent: ViewGroup): Holder<Item.Actions>(parent, R.layout.vi
         }
 
         swapView.setOnClickListener {
+            if (isWatchOnly) {
+                openWatchInfo(item.wallet)
+                return@setOnClickListener
+            } else if (!isSwapEnabled) {
+                return@setOnClickListener
+            }
+
             navigation?.add(SwapScreen.newInstance(
                 wallet = item.wallet,
                 nativeSwap = context.serverFlags?.disableNativeSwap != true,
@@ -45,20 +68,38 @@ class ActionsHolder(parent: ViewGroup): Holder<Item.Actions>(parent, R.layout.vi
             ))
         }
         buyOrSellView.setOnClickListener {
+            if (!isBuyOrSellEnabled) {
+                return@setOnClickListener
+            }
+
             navigation?.add(OnRampScreen.newInstance(context, item.wallet, "wallet"))
         }
         sendView.setOnClickListener {
+            if (isWatchOnly) {
+                openWatchInfo(item.wallet)
+                return@setOnClickListener
+            } else if (!isSendEnabled) {
+                return@setOnClickListener
+            }
+
             navigation?.add(SendScreen.newInstance(item.wallet, type = SendScreen.Companion.Type.Default))
         }
         stakeView.setOnClickListener {
+            if (isWatchOnly) {
+                openWatchInfo(item.wallet)
+                return@setOnClickListener
+            } else if (!isStakeEnabled) {
+                return@setOnClickListener
+            }
+
             navigation?.add(StakingScreen.newInstance(wallet = item.wallet, from = "wallet"))
         }
 
-        swapView.isEnabled = item.walletType != Wallet.Type.Watch && item.walletType != Wallet.Type.Testnet && !item.isSwapDisabled
-        sendView.isEnabled = item.walletType != Wallet.Type.Watch
-        scanView.isEnabled = item.walletType != Wallet.Type.Watch
-        stakeView.isEnabled = item.walletType != Wallet.Type.Watch && item.walletType != Wallet.Type.Testnet && !item.isStakingDisabled
-        buyOrSellView.isEnabled = item.walletType != Wallet.Type.Testnet
+        swapView.setEnabledAlpha(isSwapEnabled)
+        sendView.setEnabledAlpha(isSendEnabled)
+        scanView.setEnabledAlpha(isScanEnabled)
+        stakeView.setEnabledAlpha(isStakeEnabled)
+        buyOrSellView.setEnabledAlpha(isBuyOrSellEnabled)
 
         if (item.isSwapDisabled) {
             swapView.alpha = 0f
@@ -66,6 +107,10 @@ class ActionsHolder(parent: ViewGroup): Holder<Item.Actions>(parent, R.layout.vi
         if (item.isStakingDisabled) {
             stakeView.alpha = 0f
         }
+    }
+
+    private fun openWatchInfo(wallet: WalletEntity) {
+        navigation?.add(WatchInfoScreen.newInstance(wallet))
     }
 
 }

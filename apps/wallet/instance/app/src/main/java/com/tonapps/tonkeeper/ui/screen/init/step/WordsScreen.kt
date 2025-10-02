@@ -210,6 +210,8 @@ class WordsScreen: BaseFragment(R.layout.fragment_init_words) {
             val words = getMnemonic()
             if (TonMnemonic.isValidTONKeychain(words)) {
                 navigation?.toast(Localization.multi_account_secret_wrong)
+            } else if (initViewModel.watchRecoveryAccountId != null && initViewModel.getRecoveryWatchWallet(words) == null) {
+                navigation?.toast(Localization.mnemonic_match_error)
             } else {
                 if (!initViewModel.setMnemonic(words)) {
                     navigation?.toast(Localization.incorrect_phrase)

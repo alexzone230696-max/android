@@ -623,5 +623,10 @@
     <string name="privacy_policy">Політика</string>
     <string name="invalid_address">Неправильна адреса гаманця.</string>
     <string name="scam_address_error">Перекази на цю адресу не підтримуються.</string>
+    <string name="watch_only_info_title">Гаманець у режимі перегляду</string>
+    <string name="watch_only_info_subtitle">Щоб надсилати, підписувати, стейкати, обмінювати та виконувати інші дії, введіть фразу відновлення цього гаманця.</string>
+    <string name="enter_recovery_phrase">Ввести фразу відновлення</string>
+    <string name="continue_watch_account">Продовжити в режимі перегляду</string>
+    <string name="mnemonic_match_error">Фраза відновлення не підходить до цього гаманця</string>
 
 </resources>

@@ -608,5 +608,10 @@
     <string name="privacy_policy">隐私政策</string>
     <string name="invalid_address">钱包地址无效。</string>
     <string name="scam_address_error">不支持向该地址转账。</string>
+    <string name="watch_only_info_title">只读钱包</string>
+    <string name="watch_only_info_subtitle">要发送、签名、质押、兑换和执行其他操作，请输入此钱包的恢复短语。</string>
+    <string name="enter_recovery_phrase">输入恢复短语</string>
+    <string name="continue_watch_account">继续使用只读钱包</string>
+    <string name="mnemonic_match_error">恢复短语与此钱包不匹配</string>
 
 </resources>

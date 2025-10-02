@@ -613,5 +613,10 @@
     <string name="privacy_policy">Gizlilik Politikası</string>
     <string name="invalid_address">Geçersiz cüzdan adresi.</string>
     <string name="scam_address_error">Bu adrese transferler desteklenmiyor.</string>
+    <string name="watch_only_info_title">Sadece İzleme Cüzdanı</string>
+    <string name="watch_only_info_subtitle">Göndermek, imzalamak, stake etmek, takas yapmak ve diğer işlemleri gerçekleştirmek için bu cüzdanın kurtarma ifadesini girin.</string>
+    <string name="enter_recovery_phrase">Kurtarma İfadesini Girin</string>
+    <string name="continue_watch_account">Sadece İzleme Cüzdanı ile Devam Et</string>
+    <string name="mnemonic_match_error">Kurtarma ifadesi bu cüzdanla eşleşmiyor</string>
 
 </resources>

@@ -19,7 +19,8 @@ data class InitArgs(
     val publicKey: PublicKeyEd25519?,
     val ledgerConnectData: LedgerConnectData?,
     val accounts: List<AccountItem>?,
-    val keystone: WalletEntity.Keystone?
+    val keystone: WalletEntity.Keystone?,
+    val watchRecoveryAccountId: String? = null,
 ) : BaseArgs() {
 
     enum class Type {
@@ -34,6 +35,7 @@ data class InitArgs(
         private const val ARG_LEDGER_CONNECT_DATA = "ledger_connect_data"
         private const val ARG_ACCOUNTS = "accounts"
         private const val ARG_KEYSTONE = "keystone"
+        private const val ARG_WATCH_RECOVERY_ACCOUNT_ID = "watch_recovery_account_id"
     }
 
     private val ledgerAccountName: String?
@@ -54,7 +56,8 @@ data class InitArgs(
         publicKey = bundle.getString(ARG_PUBLIC_KEY)?.publicKeyFromBase64(),
         accounts = bundle.getParcelableArrayList<AccountItem>(ARG_ACCOUNTS),
         ledgerConnectData = bundle.getParcelableCompat<LedgerConnectData>(ARG_LEDGER_CONNECT_DATA),
-        keystone = bundle.getParcelableCompat(ARG_KEYSTONE)
+        keystone = bundle.getParcelableCompat(ARG_KEYSTONE),
+        watchRecoveryAccountId = bundle.getString(ARG_WATCH_RECOVERY_ACCOUNT_ID),
     )
 
     override fun toBundle(): Bundle = Bundle().apply {
@@ -64,6 +67,7 @@ data class InitArgs(
         accounts?.let { putParcelableArrayList(ARG_ACCOUNTS, ArrayList(it)) }
         ledgerConnectData?.let { putParcelable(ARG_LEDGER_CONNECT_DATA, it) }
         keystone?.let { putParcelable(ARG_KEYSTONE, it) }
+        watchRecoveryAccountId?.let { putString(ARG_WATCH_RECOVERY_ACCOUNT_ID, it) }
     }
 
 }

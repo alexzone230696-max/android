@@ -102,6 +102,7 @@ class InitViewModel(
     private val type = args.type
     private val testnet: Boolean = type == InitArgs.Type.Testnet
     private val walletsCount = AtomicInteger(-1)
+    val watchRecoveryAccountId = args.watchRecoveryAccountId
 
     private val walletLabelHelper: WalletLabelHelper by lazy {
         WalletLabelHelper(context)
@@ -193,6 +194,7 @@ class InitViewModel(
                 )
                 routeTo(InitRoute.LabelAccount)
             }
+
             InitArgs.Type.New -> {
                 if (requestSetPinCode) {
                     routeTo(InitRoute.CreatePasscode)
@@ -258,6 +260,8 @@ class InitViewModel(
         val valid = savedState.passcode == passcode
         if (!valid) {
             routePopBackStack()
+        } else if (watchRecoveryAccountId != null) {
+            execute(context)
         } else {
             routeTo(if (environment.isGooglePlayServicesAvailable) InitRoute.Push else InitRoute.LabelAccount)
         }
@@ -326,13 +330,28 @@ class InitViewModel(
                 getAccountItem(account, ListCell.getPosition(accounts.size, index))
             }
 
+            val recoveryWallet = getRecoveryWatchWallet(publicKey = publicKey.publicKey)
+            val recoveryAccountItem = accounts.firstOrNull { it.preview.accountId == recoveryWallet?.accountId }?.let {
+                getAccountItem(it, ListCell.Position.SINGLE)
+            }
+
             val items = mutableListOf<AccountItem>()
-            for (account in list) {
-                items.add(account)
+            if (recoveryAccountItem != null) {
+                items.add(recoveryAccountItem)
+            } else {
+                for (account in list) {
+                    items.add(account)
+                }
             }
             setAccounts(items.toList())
 
-            if (items.size > 1) {
+            if (recoveryWallet != null) {
+                savedState.enablePush = settingsRepository.getPushWallet(recoveryWallet.id)
+            }
+
+            if (recoveryWallet != null && !requestSetPinCode) {
+                execute(context)
+            } else if (items.size > 1) {
                 routeTo(InitRoute.SelectAccount)
             } else if (requestSetPinCode) {
                 applyAccountName(items)
@@ -354,10 +373,12 @@ class InitViewModel(
             return
         }
 
-        setLabel(Wallet.Label(
-            accountName = parsedName ?: "",
-            emoji = parsedEmoji ?: "",
-        ))
+        setLabel(
+            Wallet.Label(
+                accountName = parsedName ?: "",
+                emoji = parsedEmoji ?: "",
+            )
+        )
     }
 
     private suspend fun applyAccountName(accounts: List<AccountItem>) {
@@ -365,11 +386,13 @@ class InitViewModel(
 
         val (emoji, color) = generateLabel(names)
 
-        setLabel(Wallet.Label(
-            accountName = names.firstOrNull() ?: getDefaultWalletName(),
-            emoji = emoji ?: Emoji.WALLET_ICON,
-            color = color ?: WalletColor.all.first()
-        ))
+        setLabel(
+            Wallet.Label(
+                accountName = names.firstOrNull() ?: getDefaultWalletName(),
+                emoji = emoji ?: Emoji.WALLET_ICON,
+                color = color ?: WalletColor.all.first()
+            )
+        )
     }
 
     private fun applyAccountName() {
@@ -450,11 +473,13 @@ class InitViewModel(
         val (generatedEmoji, generatedColor) = generateLabel(names)
         val accountName = account?.name ?: getDefaultWalletName()
 
-        setLabel(Wallet.Label(
-            accountName = accountName,
-            emoji = generatedEmoji ?: Emoji.WALLET_ICON,
-            color = generatedColor ?: WalletColor.all.first()
-        ))
+        setLabel(
+            Wallet.Label(
+                accountName = accountName,
+                emoji = generatedEmoji ?: Emoji.WALLET_ICON,
+                color = generatedColor ?: WalletColor.all.first()
+            )
+        )
     }
 
     private suspend fun getDefaultWalletName(): String {
@@ -535,6 +560,25 @@ class InitViewModel(
             routeTo(InitRoute.CreatePasscode)
         } else {
             execute(context)
+        }
+    }
+
+    suspend fun getRecoveryWatchWallet(mnemonic: List<String>) = getRecoveryWatchWallet(
+        MnemonicHelper.privateKey(mnemonic).publicKey()
+    )
+
+    suspend fun getRecoveryWatchWallet(publicKey: PublicKeyEd25519): WalletEntity? = withContext(Dispatchers.IO) {
+        if (watchRecoveryAccountId == null) {
+            return@withContext null
+        }
+
+        val wallet = accountRepository.getWallets()
+            .first { it.accountId == watchRecoveryAccountId && it.type == Wallet.Type.Watch }
+
+        if (wallet.publicKey == publicKey) {
+            wallet
+        } else {
+            null
         }
     }
 
@@ -694,7 +738,15 @@ class InitViewModel(
             val ids = accounts.map { AccountRepository.newWalletId() }
             saveMnemonic(context, ids, mnemonic)
 
-            val label = buildNewLabel(accounts.map {
+            val recoveryWallet = getRecoveryWatchWallet(mnemonic)
+
+            val label = recoveryWallet?.let {
+                Wallet.NewLabel(
+                    names = listOf(it.label.name),
+                    emoji = it.label.emoji,
+                    color = it.label.color
+                )
+            } ?: buildNewLabel(accounts.map {
                 SimpleAccount(
                     name = it.name,
                     version = it.walletVersion
@@ -716,6 +768,12 @@ class InitViewModel(
                 testnet,
                 accounts.map { it.initialized })
 
+            // delete watch only wallet
+            recoveryWallet?.let {
+                PushToggleWorker.run(context, recoveryWallet, PushManager.State.Delete)
+                accountRepository.delete(it)
+            }
+
             if (!testnet) {
                 checkTronBalance(wallets)
             }
@@ -734,7 +792,11 @@ class InitViewModel(
                 settingsRepository.setTokenPinned(it.id, TokenEntity.TRON_USDT.address, true)
                 settingsRepository.setTokensSort(
                     wallet.id,
-                    listOf(TokenEntity.USDT.address, TokenEntity.TRON_USDT.address, TokenEntity.USDE.address)
+                    listOf(
+                        TokenEntity.USDT.address,
+                        TokenEntity.TRON_USDT.address,
+                        TokenEntity.USDE.address
+                    )
                 )
             }
         }

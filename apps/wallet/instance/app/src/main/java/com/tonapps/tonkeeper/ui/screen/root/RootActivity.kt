@@ -428,7 +428,10 @@ class RootActivity : BaseWalletActivity() {
         val fragment = supportFragmentManager.findFragment<SendScreen>()
 
         if (targetAddress != null && amount.isPositive() && nftAddress.isNullOrBlank()) {
-            if (bin != null || initStateBase64 != null) {
+            val isScam = viewModel.isScamAddress(targetAddress, wallet.testnet)
+            if (isScam) {
+                toast(Localization.scam_address_error)
+            } else if (bin != null || initStateBase64 != null) {
                 try {
                     openSign(
                         wallet = wallet,
