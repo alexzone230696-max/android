@@ -577,8 +577,10 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
     }
 
     private fun next() {
+        val text = commentInput.text
         setFee(null)
-        addressInput.hideKeyboard()
+        hideKeyboard()
+        viewModel.userInputComment(text)
         viewModel.next()
     }
 

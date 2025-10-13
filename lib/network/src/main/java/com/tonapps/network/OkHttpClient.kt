@@ -3,6 +3,7 @@ package com.tonapps.network
 import android.util.Log
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.isActive
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -101,6 +104,7 @@ class OkHttpError(
 
 fun OkHttpClient.sseFactory() = EventSources.createFactory(this)
 
+@OptIn(DelicateCoroutinesApi::class)
 fun OkHttpClient.sse(
     url: String,
     lastEventId: Long? = null,
@@ -111,6 +115,7 @@ fun OkHttpClient.sse(
         override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
             if (!this@callbackFlow.trySend(SSEvent(id, type, data)).isSuccess) {
                 eventSource.cancel()
+                channel.close(IOException("Downstream not ready / buffer full"))
             }
         }
 
@@ -120,10 +125,11 @@ fun OkHttpClient.sse(
                 null -> IOException("SSE connection failed with response: ${response?.code}")
                 else -> t
             }
-            channel.close(error)
+            this@callbackFlow.close(error)
         }
 
         override fun onClosed(eventSource: EventSource) {
+            if (channel.isClosedForSend || !this@callbackFlow.isActive) return
             close()
         }
     }
@@ -143,7 +149,7 @@ fun OkHttpClient.sse(
             events.cancel()
         } catch (ignored: Exception) { }
     }
-}.retry { cause ->
+}.retryWhen { cause, attempt ->
     when {
         cause is CancellationException -> false
         cause is IOException && cause.message.equals("canceled", ignoreCase = true) -> false
@@ -151,7 +157,7 @@ fun OkHttpClient.sse(
         cause is OutOfMemoryError -> false
         else -> {
             onFailure?.invoke(cause)
-            delay(1000)
+            delay(minOf(1000L * (attempt + 1), 5000L))
             true
         }
     }

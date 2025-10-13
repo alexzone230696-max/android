@@ -51,6 +51,8 @@ platform :android do
     desc "Build the android aab for release"
     lane :build_release do |options|
         flavor = options[:flavor] || "default"
+        gradle(task: 'clean')
+
         gradle(
             task: "bundle",
             build_type: "release",

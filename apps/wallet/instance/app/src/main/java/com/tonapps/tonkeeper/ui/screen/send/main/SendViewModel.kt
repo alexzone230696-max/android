@@ -249,7 +249,7 @@ class SendViewModel(
 
     val uiCommentAvailable = selectedTokenFlow.map { !it.isTrc20 }
 
-    private val uiInputComment = userInputFlow.map { it.comment }.distinctUntilChanged()
+    private val uiInputComment = userInputFlow.map { it.comment }
 
     private val uiInputAmountCurrency =
         userInputFlow.map { it.amountCurrency }.distinctUntilChanged()
@@ -408,10 +408,9 @@ class SendViewModel(
     }
 
     private val transferFlow = combine(
-        transactionFlow.distinctUntilChanged().debounce(300),
-        userInputFlow.map { Pair(it.comment, it.encryptedComment) }.distinctUntilChanged()
-            .debounce(300),
-        selectedTokenFlow.debounce(300),
+        transactionFlow.distinctUntilChanged(),
+        userInputFlow.map { Pair(it.comment, it.encryptedComment) },
+        selectedTokenFlow,
     ) { transaction, (comment, encryptedComment), token ->
         val customPayload = getTokenCustomPayload(token.balance.token)
         val sendMetadata = getSendParams(wallet)
@@ -779,24 +778,18 @@ class SendViewModel(
     }
 
     private fun nextTon() {
-        viewModelScope.launch(Dispatchers.IO) {
-            transferFlow.firstOrNull()?.let { transfer ->
-                val fee = calculateFee(transfer)
-                _feeFlow.tryEmit(fee)
-                eventFee(transfer, fee)?.let {
-                    showPreview(it)
-                }
-            }
+        transferFlow.take(1).collectFlow { transfer ->
+            val fee = calculateFee(transfer)
+            _feeFlow.tryEmit(fee)
+            eventFee(transfer, fee)?.let(::showPreview)
         }
     }
 
     fun next() {
-        selectedTokenFlow.take(1).collectFlow { token ->
-            if (token.isTrc20) {
-                nextTron()
-            } else {
-                nextTon()
-            }
+        if (selectedTokenFlow.value.isTrc20) {
+            nextTron()
+        } else {
+            nextTon()
         }
     }
 
