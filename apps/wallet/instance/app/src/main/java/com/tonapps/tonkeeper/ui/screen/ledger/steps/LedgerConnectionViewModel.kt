@@ -482,8 +482,8 @@ class LedgerConnectionViewModel(
         }
 
         return when (transaction.payload!!::class) {
-            TonPayloadFormat.JettonTransfer::class -> {
-                defaultVersion
+            TonPayloadFormat.JettonTransfer::class, TonPayloadFormat.NftTransfer::class -> {
+                "2.8.1"
             }
 
             TonPayloadFormat.Comment::class -> {

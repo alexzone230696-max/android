@@ -618,5 +618,7 @@
     <string name="enter_recovery_phrase">Tiklash iborasini kiriting</string>
     <string name="continue_watch_account">Faqat ko‘rish rejimida davom etish</string>
     <string name="mnemonic_match_error">Tiklash iborasi ushbu hamyonga mos kelmadi</string>
+    <string name="cell_schema">Hujayra sxemasi</string>
+    <string name="cell_data">Hujayra maʼlumotlari</string>
 
 </resources>

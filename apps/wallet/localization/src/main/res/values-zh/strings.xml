@@ -613,5 +613,7 @@
     <string name="enter_recovery_phrase">输入恢复短语</string>
     <string name="continue_watch_account">继续使用只读钱包</string>
     <string name="mnemonic_match_error">恢复短语与此钱包不匹配</string>
+    <string name="cell_schema">单元架构</string>
+    <string name="cell_data">单元数据</string>
 
 </resources>

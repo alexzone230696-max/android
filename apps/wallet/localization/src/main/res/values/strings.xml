@@ -725,4 +725,6 @@
     <string name="enter_recovery_phrase">Enter Recovery Phrase</string>
     <string name="continue_watch_account">Continue with Watch Account</string>
     <string name="mnemonic_match_error">Recovery phrase doesn’t match this wallet</string>
+    <string name="cell_schema">Cell Schema</string>
+    <string name="cell_data">Cell Data</string>
 </resources>

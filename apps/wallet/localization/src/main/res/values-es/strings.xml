@@ -618,5 +618,7 @@
     <string name="enter_recovery_phrase">Ingresar Frase de Recuperación</string>
     <string name="continue_watch_account">Continuar en modo Solo Lectura</string>
     <string name="mnemonic_match_error">La frase de recuperación no coincide con esta billetera</string>
+    <string name="cell_schema">Esquema de celda</string>
+    <string name="cell_data">Datos de celda</string>
 
 </resources>

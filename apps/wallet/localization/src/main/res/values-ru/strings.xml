@@ -686,4 +686,6 @@
     <string name="enter_recovery_phrase">Ввести секретный ключ</string>
     <string name="continue_watch_account">Продолжить в режиме просмотра</string>
     <string name="mnemonic_match_error">Секретный ключ не подходит к этому кошельку</string>
+    <string name="cell_schema">Схема ячейки</string>
+    <string name="cell_data">Данные ячейки</string>
 </resources>

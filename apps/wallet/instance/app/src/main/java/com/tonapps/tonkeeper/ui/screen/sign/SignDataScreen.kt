@@ -35,6 +35,7 @@ import org.koin.core.parameter.parametersOf
 import uikit.base.BaseFragment
 import uikit.extensions.activity
 import uikit.extensions.addForResult
+import uikit.extensions.dp
 import uikit.extensions.withAlpha
 import uikit.widget.ProcessTaskView
 import uikit.widget.SlideActionView
@@ -48,6 +49,7 @@ class SignDataScreen(wallet: WalletEntity): BaseWalletScreen<ScreenContext.Walle
 
     private lateinit var textLayoutView: View
     private lateinit var binaryLayoutView: View
+    private lateinit var cellSchemaLayoutView: View
     private lateinit var cellLayoutView: View
     private lateinit var slideView: SlideActionView
     private lateinit var taskView: ProcessTaskView
@@ -56,6 +58,7 @@ class SignDataScreen(wallet: WalletEntity): BaseWalletScreen<ScreenContext.Walle
         super.onViewCreated(view, savedInstanceState)
         textLayoutView = view.findViewById(R.id.text_layout)
         binaryLayoutView = view.findViewById(R.id.binary_layout)
+        cellSchemaLayoutView = view.findViewById(R.id.cell_schema_layout)
         cellLayoutView = view.findViewById(R.id.cell_layout)
 
         view.findViewById<View>(R.id.close).setOnClickListener { finish() }
@@ -106,10 +109,16 @@ class SignDataScreen(wallet: WalletEntity): BaseWalletScreen<ScreenContext.Walle
     }
 
     private fun applyCellLayout(payload: SignDataRequestPayload.Cell) {
+        cellSchemaLayoutView.visibility = View.VISIBLE
+        cellSchemaLayoutView.findViewById<AppCompatTextView>(R.id.cell_schema_value).apply {
+            text = payload.formatSchema
+        }
         cellLayoutView.visibility = View.VISIBLE
         cellLayoutView.findViewById<AppCompatTextView>(R.id.cell_value).apply {
             text = payload.print()
             movementMethod = ScrollingMovementMethod()
+            isHorizontalFadingEdgeEnabled = true
+            setFadingEdgeLength(24.dp)
         }
         slideView.doOnDone = { signCell(payload) }
     }

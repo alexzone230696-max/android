@@ -196,7 +196,8 @@ class TonTransport(private val transport: Transport) {
         var stateInit: Cell? = null
         if (transaction.stateInit != null) {
             stateInit = StateInit.tlbCodec().createCell(transaction.stateInit)
-            pkg += LedgerWriter.putUint8(1) + LedgerWriter.putUint16(stateInit.depth()) + stateInit.hash().toByteArray()
+            pkg += LedgerWriter.putUint8(1) + LedgerWriter.putUint16(stateInit.depth()) + stateInit.hash()
+                .toByteArray()
         } else {
             pkg += LedgerWriter.putUint8(0)
         }
@@ -554,7 +555,8 @@ class TonTransport(private val transport: Transport) {
         }
 
         pkg += if (!payload.isEmpty()) {
-            LedgerWriter.putUint8(1) + LedgerWriter.putUint16(payload.depth()) + payload.hash().toByteArray() + hints
+            LedgerWriter.putUint8(1) + LedgerWriter.putUint16(payload.depth()) + payload.hash()
+                .toByteArray() + hints
         } else {
             LedgerWriter.putUint8(0) + LedgerWriter.putUint8(0)
         }
@@ -613,7 +615,13 @@ class TonTransport(private val transport: Transport) {
         val signature = res.slice(1 until 65).toByteArray()
         val hash = res.slice(66 until 98).toByteArray()
         if (!hash.contentEquals(transfer.hash().toByteArray())) {
-            throw Error("Hash mismatch. Expected: ${hex(transfer.hash().toByteArray())}, got: ${hex(hash)}")
+            throw Error(
+                "Hash mismatch. Expected: ${hex(transfer.hash().toByteArray())}, got: ${
+                    hex(
+                        hash
+                    )
+                }"
+            )
         }
 
         // Build a message

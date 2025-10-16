@@ -628,5 +628,7 @@
     <string name="enter_recovery_phrase">Ввести фразу відновлення</string>
     <string name="continue_watch_account">Продовжити в режимі перегляду</string>
     <string name="mnemonic_match_error">Фраза відновлення не підходить до цього гаманця</string>
+    <string name="cell_schema">Схема комірки</string>
+    <string name="cell_data">Дані комірки</string>
 
 </resources>

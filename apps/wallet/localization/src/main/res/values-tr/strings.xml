@@ -618,5 +618,7 @@
     <string name="enter_recovery_phrase">Kurtarma İfadesini Girin</string>
     <string name="continue_watch_account">Sadece İzleme Cüzdanı ile Devam Et</string>
     <string name="mnemonic_match_error">Kurtarma ifadesi bu cüzdanla eşleşmiyor</string>
+    <string name="cell_schema">Hücre Şeması</string>
+    <string name="cell_data">Hücre Verileri</string>
 
 </resources>

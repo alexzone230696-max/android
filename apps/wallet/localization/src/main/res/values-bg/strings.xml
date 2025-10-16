@@ -664,5 +664,7 @@
     <string name="enter_recovery_phrase">Въведете фраза за възстановяване</string>
     <string name="continue_watch_account">Продължи в режим само за преглед</string>
     <string name="mnemonic_match_error">Фразата за възстановяване не съвпада с този портфейл</string>
+    <string name="cell_schema">Схема на клетката</string>
+    <string name="cell_data">Данни на клетката</string>
 
 </resources>
