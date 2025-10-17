@@ -440,7 +440,7 @@ class LedgerConnectionViewModel(
                 }
 
                 val version = _tonTransport!!.getVersion()
-                val requiredVersion = getRequiredVersion(_transaction!!)
+                val requiredVersion = getRequiredVersion(_transaction!!, version)
 
                 if (version.isVersionLowerThan(requiredVersion)) {
                     _eventFlow.tryEmit(LedgerEvent.WrongVersion(requiredVersion))
@@ -474,16 +474,20 @@ class LedgerConnectionViewModel(
         }
     }
 
-    private fun getRequiredVersion(transaction: Transaction): String {
+    private fun getRequiredVersion(transaction: Transaction, currentVersion: String): String {
         val defaultVersion = "2.0.0"
 
         if (transaction.payload == null) {
             return defaultVersion
         }
 
+        if (currentVersion == "2.7.0") {
+            return "2.8.1"
+        }
+
         return when (transaction.payload!!::class) {
-            TonPayloadFormat.JettonTransfer::class, TonPayloadFormat.NftTransfer::class -> {
-                "2.8.1"
+            TonPayloadFormat.JettonTransfer::class -> {
+                defaultVersion
             }
 
             TonPayloadFormat.Comment::class -> {
