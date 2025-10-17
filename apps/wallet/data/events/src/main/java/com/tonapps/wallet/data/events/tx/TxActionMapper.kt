@@ -363,7 +363,7 @@ internal class TxActionMapper(
 
     private fun nftPurchase(address: BlockchainAddress, action: NftPurchaseAction): TxActionBody {
         val currency = currency(action.amount)
-        val amount = Coins.of(action.amount.value, currency.decimals)
+        val amount = Coins.ofNano(action.amount.value, currency.decimals)
         val recipient = account(action.seller, address.testnet)
         val product = product(action.nft, address.testnet)
 

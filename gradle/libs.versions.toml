@@ -8,10 +8,10 @@ kotlinxSerialization = "1.9.0"
 # Koin
 koin = "4.1.1"
 # OkHttp
-okhttp = "5.1.0"
+okhttp = "5.2.1"
 # Compose
-compose = "2025.09.01"
-compose-multiplatform = "1.10.0-alpha01"
+compose = "2025.10.00"
+compose-multiplatform = "1.10.0-alpha02"
 compose-paging = "3.3.6"
 
 # CameraX
@@ -19,7 +19,7 @@ cameraX = "1.4.2"
 # Coil
 coil = "3.3.0"
 # Room
-room = "2.8.0"
+room = "2.8.2"
 sqlite = "2.6.0"
 
 
@@ -32,7 +32,7 @@ ble = { module = "no.nordicsemi.android:ble-ktx", version = "2.10.2" }
 bcprovjdk = { module = "org.bouncycastle:bcprov-jdk15to18", version = "1.81" }
 web3j = { module = "org.web3j:core", version = "5.0.0" }
 aptabase = { module = "com.github.aptabase:aptabase-kotlin", version = "0.0.8" }
-okio = { module = "com.squareup.okio:okio", version = "3.16.0" }
+okio = { module = "com.squareup.okio:okio", version = "3.16.2" }
 material = { module = "com.google.android.material:material", version = "1.13.0" }
 flexbox = { module = "com.google.android.flexbox:flexbox", version = "3.0.0" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version = "17.3.0" }
@@ -64,7 +64,7 @@ kotlinX-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collec
 
 # Google Play
 google-play-base = { module = "com.google.android.gms:play-services-base", version = "18.9.0" }
-google-play-cronet = { module = "com.google.android.gms:play-services-cronet", version = "18.1.0" }
+google-play-cronet = { module = "com.google.android.gms:play-services-cronet", version = "18.1.1" }
 google-play-review = { module = "com.google.android.play:review-ktx", version = "2.0.2" }
 google-play-billing = { module = "com.android.billingclient:billing-ktx", version = "8.0.0" }
 google-play-update = { module = "com.google.android.play:app-update-ktx", version = "2.1.0" }
@@ -139,7 +139,7 @@ androidX-lifecycle = { module = "androidx.lifecycle:lifecycle-runtime-ktx", vers
 androidX-lifecycleSavedState = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version = "2.9.4" }
 androidX-emoji = { module = "androidx.emoji2:emoji2", version = "1.6.0" }
 androidX-benchmark = { module = "androidx.benchmark:benchmark-macro-junit4", version = "1.4.1" }
-androidX-metrics-performance = { module = "androidx.metrics:metrics-performance", version = "1.0.0-rc01" }
+androidX-metrics-performance = { module = "androidx.metrics:metrics-performance", version = "1.0.0" }
 
 # Testing
 androidX-test = { module = "androidx.test:core", version = "1.7.0" }
@@ -148,7 +148,7 @@ androidX-test-espresso = { module = "androidx.test.espresso:espresso-core", vers
 androidX-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version = "2.3.0" }
 
 # Firebase
-firebase-bom = { module = "com.google.firebase:firebase-bom", version = "34.3.0" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version = "34.4.0" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-config = { module = "com.google.firebase:firebase-config", version = "23.0.1" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
@@ -169,7 +169,7 @@ kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library"
 kotlin-multiplatform-compose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version = "2.2.20" }
 
-firebase-services = { id = "com.google.gms.google-services", version = "4.4.3" }
+firebase-services = { id = "com.google.gms.google-services", version = "4.4.4" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
 firebase-performance = { id = "com.google.firebase.firebase-perf", version = "2.0.1" }
 

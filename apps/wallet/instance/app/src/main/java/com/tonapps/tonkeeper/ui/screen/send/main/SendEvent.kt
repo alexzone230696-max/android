@@ -13,13 +13,15 @@ sealed class SendEvent {
     data object Canceled: SendEvent()
     data object Success: SendEvent()
     data object Loading: SendEvent()
+
     data class InsufficientBalance(
         val balance: Amount,
         val required: Amount,
         val withRechargeBattery: Boolean,
         val singleWallet: Boolean,
         val type: InsufficientBalanceType
-    ): SendEvent()
+    )
+
     data object Confirm: SendEvent()
 
     data class Fee(
@@ -34,7 +36,7 @@ sealed class SendEvent {
         val showToggle: Boolean = false,
         val insufficientFunds: Boolean = false,
         val failed: Boolean,
-    ): SendEvent()
+    )
 
     data object ResetAddress: SendEvent()
 }

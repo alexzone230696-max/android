@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -37,6 +38,7 @@ import com.tonapps.tonkeeper.ui.screen.camera.CameraScreen
 import com.tonapps.tonkeeper.ui.screen.nft.NftScreen
 import com.tonapps.tonkeeper.ui.screen.send.InsufficientFundsDialog
 import com.tonapps.tonkeeper.ui.screen.send.contacts.main.SendContactsScreen
+import com.tonapps.tonkeeper.ui.screen.send.main.SendEvent
 import com.tonapps.tonkeeper.ui.screen.send.main.helper.InsufficientBalanceType
 import com.tonapps.tonkeeper.ui.screen.send.main.state.SendAmountState
 import com.tonapps.tonkeeper.ui.screen.send.main.state.SendDestination
@@ -310,6 +312,8 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
             }
         }
 
+        collectFlow(viewModel.uiInsufficientBalanceFlow, ::openInsufficientBalance)
+        collectFlow(viewModel.uiFeeFlow, ::setFee)
         collectFlow(viewModel.uiEventFlow, ::onEvent)
         collectFlow(viewModel.uiInputAmountFlow.map { it.value }, amountView::setValue)
         collectFlow(viewModel.uiBalanceFlow, ::setAmountState)
@@ -552,23 +556,22 @@ class SendScreen(wallet: WalletEntity) : WalletContextScreen(R.layout.fragment_s
         commentEncryptView.text = spannableString
     }
 
+    private fun openInsufficientBalance(event: SendEvent.InsufficientBalance) {
+        showInsufficientFundsDialog(
+            balance = event.balance,
+            required = event.required,
+            withRechargeBattery = event.withRechargeBattery,
+            singleWallet = event.singleWallet,
+            type = event.type
+        )
+    }
+
     private fun onEvent(event: SendEvent) {
         when (event) {
             is SendEvent.Canceled -> setDefault()
             is SendEvent.Failed -> setFailed(event.throwable)
             is SendEvent.Success -> setSuccess()
             is SendEvent.Loading -> setLoading()
-            is SendEvent.Fee -> setFee(event)
-            is SendEvent.InsufficientBalance -> {
-                showInsufficientFundsDialog(
-                    balance = event.balance,
-                    required = event.required,
-                    withRechargeBattery = event.withRechargeBattery,
-                    singleWallet = event.singleWallet,
-                    type = event.type
-                )
-            }
-
             is SendEvent.Confirm -> slidesView.next()
             is SendEvent.ResetAddress -> {
                 addressInput.text = ""

@@ -43,6 +43,7 @@ import java.io.File
 import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.uuid.Uuid
+import androidx.core.net.toUri
 
 class ApkDownloadWorker(
     private val context: Context,
@@ -68,6 +69,8 @@ class ApkDownloadWorker(
         setForeground(getForegroundInfo())
         setProgressAsync(workDataOf(ARG_PROGRESS to 0))
 
+        Log.d("SendViewLog", "download url: $downloadUrl")
+
         var lastUpdateTime = 0L
         fileDownloader.download(downloadUrl, targetFile).onEach { status ->
             if (status is DownloadStatus.Progress) {
@@ -78,6 +81,7 @@ class ApkDownloadWorker(
                     lastUpdateTime = currentTime
                 }
             } else if (status is DownloadStatus.Success) {
+                Log.d("SendViewLog", "download success")
                 notificationManager.cancel(NOTIFICATION_ID)
                 setProgress(100)
                 showInstallNotification(targetFile)
@@ -95,7 +99,7 @@ class ApkDownloadWorker(
 
     @SuppressLint("MissingPermission")
     private fun showInstallNotification(file: File) {
-        val installUri = Uri.parse("tonkeeper://install")
+        val installUri = "tonkeeper://install".toUri()
             .buildUpon()
             .appendQueryParameter("file", file.absolutePath)
             .build()
@@ -173,6 +177,7 @@ class ApkDownloadWorker(
             downloadUrl: String,
             targetFile: String
         ): UUID {
+            Log.d("SendViewLog", "start download worker")
             val id = UUID.randomUUID()
             context.workManager.cancelAllWorkByTag(NAME)
             val inputData = Data.Builder()

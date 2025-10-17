@@ -6,4 +6,5 @@ sealed class SendException: Exception() {
     class WrongPasscode: SendException()
     class Cancelled: SendException()
     class InvalidComment: SendException()
+    class InsufficientBalance: SendException()
 }

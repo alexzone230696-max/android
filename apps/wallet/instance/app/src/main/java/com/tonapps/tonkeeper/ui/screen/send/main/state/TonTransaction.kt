@@ -15,9 +15,13 @@ data class TonTransaction(
 ) {
 
     data class Amount(
-        val value: Coins,
-        val converted: Coins,
-        val format: CharSequence,
-        val convertedFormat: CharSequence,
-    )
+        val value: Coins = Coins.ZERO,
+        val converted: Coins = Coins.ZERO,
+        val format: CharSequence = "",
+        val convertedFormat: CharSequence = "",
+    ) {
+
+        val isEmpty: Boolean
+            get() = !value.isPositive
+    }
 }

@@ -124,6 +124,7 @@ class APKManager(
             return
         }
 
+
         val currentVersion = AppVersion(context.appVersionName)
         if (currentVersion.integer >= apk.apkName.integer) {
             return
