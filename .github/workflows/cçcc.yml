@@ -1,4 +1,4 @@
-name: Android APK release CD
+name: Android APK release CDl
 
 on:
   push:
